@@ -5,31 +5,31 @@ A Python-based backend ecosystem built using FastAPI. This service is designed f
 ## Features
 
 - **Mock Authentication**  
-  Uses a simple UUID-based login to simulate authentication. In production, integrate with Banco de Guayaquil’s SSO/OAuth.
-  
+  Utilizes a simple UUID-based login to simulate user authentication. In production, this can be replaced or extended to integrate with Banco de Guayaquil’s SSO/OAuth.
+
 - **User Profile Management**  
-  Create and retrieve user profiles. Profiles include company name, opt-in status, categorization tier, and a badge URL.
-  
+  Create and retrieve user profiles. Each profile can include a company name, opt-in status, categorization tier, and a badge URL.
+
 - **Opt-In Mechanism**  
-  Endpoints to allow users to opt-in or opt-out of the trusted network.
-  
+  Allows users to opt in or out of the trusted network through dedicated endpoints.
+
 - **User Categorization**  
-  Recalculates user categorization based on simulated data from financial health, business reputation, digital presence, legal status, and web/SEO metrics.  
-  Integrates with a simulated bedrock model for advanced scoring adjustments.
-  
+  Recalculates user trust scores based on simulated data sources (financial health, business reputation, digital presence, legal status, and web/SEO metrics).  
+  Includes an additional AI-based adjustment from a simulated Bedrock model for more accurate scoring.
+
 - **Health Check Endpoint**  
-  A root endpoint for verifying that the service is running, including a startup timestamp.
-  
+  A root endpoint to verify that the service is running, including a startup timestamp for reference.
+
 - **Background Task Processing**  
-  Uses FastAPI’s `BackgroundTasks` for asynchronous category recalculation.
+  Employs FastAPI’s BackgroundTasks for asynchronous user categorization recalculations.
 
 - **Poetry Managed & Custom Start Script**  
-  Uses Poetry for dependency management and includes a custom script entry point (`poetry run start`) to run the application.
+  Manages dependencies with Poetry and provides a custom script entry point (poetry run start) for starting the application.
 
 ## Prerequisites
 
-- **Python 3.11 or later**
-- **Poetry** (installation guide: [Poetry Installation](https://python-poetry.org/docs/#installation))
+- Python 3.11 or later
+- Poetry (installation guide: [Poetry Installation](https://python-poetry.org/docs/#installation))
 
 ## Installation
 
@@ -38,37 +38,39 @@ A Python-based backend ecosystem built using FastAPI. This service is designed f
    ```bash
    git clone <repository_url>
    cd backend
+   ```
 
 2. **Install Dependencies**
 
    ```bash
    poetry install
+   ```
 
 3. **Run the Application**
 
    ```bash
-    poetry run start
+   poetry run start
+   ```
+   This command starts the FastAPI server at http://127.0.0.1:8000 with automatic reloading enabled.
 
-This command will start the FastAPI server at http://127.0.0.1:8000 with automatic reloading enabled.
-Alternatively, you can activate the Poetry shell and run Uvicorn directly:
+   Alternatively, you can activate the Poetry shell and run Uvicorn directly:
+   ```bash
+   poetry shell
+   uvicorn app.main:app --reload
+   ```
 
-    ```bash
-    poetry shell
-    uvicorn app.main:app --reload
+## API Endpoints
 
+Below is a brief overview of the primary endpoints in this application. Adjust these paths as needed based on your specific project structure:
 
-API Endpoints
-GET /
-Health check endpoint returning a welcome message and the service startup time.
+1. GET /  
+   » A health check endpoint returning a welcome message and the service startup time.
 
-POST /login
-Mock login endpoint. Accepts a username and password, returns a user profile and a mock token.
+2. POST /auth/login  
+   » Mock login endpoint. Accepts a username and password, then returns a user profile and a mock token.
 
-GET /profile/{user_id}
-Retrieve a user profile by ID.
+3. GET /auth/profile/{user_id}  
+   » Retrieves a user profile by ID. (Path may vary if you have different routing logic.)
 
-POST /opt-in
-Opt-in or opt-out endpoint for users to join the trusted network.
-
-POST /recalculate_category/{user_id}
-Triggers a background task to recalculate a user’s category based on simulated data and an AI-based adjustment.
+4. POST /category/recalculate/{ruc}  
+   » Triggers a background task to recalculate a user's trust score and tier based on simulated data and an AI-based adjustment (Bedrock integration).

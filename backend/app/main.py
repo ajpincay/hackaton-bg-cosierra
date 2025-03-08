@@ -16,12 +16,16 @@ from app.routes import auth, category
 # Create the database tables if they don't already exist
 #Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Banco de Guayaquil Trusted Network Backend")
-
+app = FastAPI(
+    title="Banco de Guayaquil Trusted Network",
+    description="A backend for SMEs and entrepreneurs to access B2B services.",
+    version="0.1.0",
+    docs_url="/docs",
+)
 # Record the startup time for health-check purposes
 startup_time = datetime.now(timezone.utc)
 
-@app.get("/", tags=["Root"], summary="Health/Start Endpoint")
+@app.get("/", tags=["Root"], summary="Health Endpoint")
 def read_root():
     """
     Simple health check endpoint to confirm the service is running.
