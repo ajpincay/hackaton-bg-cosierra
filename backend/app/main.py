@@ -1,14 +1,18 @@
-# app/main.py
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks
+from sqlalchemy.orm import Session
 from uuid import uuid4
 from datetime import datetime
-from app.models import UserProfile, LoginRequest, LoginResponse, OptInRequest
+from app.db import SessionLocal, engine
+from app import models_db, models
+from app.tasks import fetch_and_calculate_category
+import uvicorn
 
-# Simulated in-memory database
-fake_db = {}
+
+# Uncomment if you want SQLAlchemy to create the tables automatically.
+# If your tables already exist in MySQL, you can remove or comment out.
+models_db.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Banco de Guayaquil Trusted Network Backend")
-
 # Record the startup time for health-check purposes
 startup_time = datetime.utcnow()
 
@@ -26,85 +30,102 @@ def read_root():
         "startup_time": startup_time.isoformat(),
     }
 
-# --- Mock Authentication Function ---
-def authenticate_user(username: str, password: str) -> str:
+# Dependency to get DB session
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+@app.post("/login", response_model=models.LoginResponse)
+def login(login_req: models.LoginRequest, db: Session = Depends(get_db)):
     """
-    In production, you'd verify credentials against Banco de Guayaquil's auth system.
-    For this MVP, we simply generate a UUID for any login.
+    Mock login endpoint that verifies credentials in mock_log_in.
+    Returns the corresponding pymes_trust record plus a mock token.
     """
-    return str(uuid4())
+    user_login = db.query(models_db.MockLogIn).filter(
+        models_db.MockLogIn.ruc == login_req.ruc,
+        models_db.MockLogIn.password == login_req.password
+    ).first()
 
-# --- API Endpoints ---
+    if not user_login:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
 
-@app.post("/login", response_model=LoginResponse, tags=["Authentication"], summary="User Login")
-def login(login_req: LoginRequest):
-    user_id = authenticate_user(login_req.username, login_req.password)
-    # Create a new user profile if not existing
-    if user_id not in fake_db:
-        fake_db[user_id] = UserProfile(
-            user_id=user_id,
-            company_name=f"Company_{user_id[:5]}",
-            opted_in=False,
-        )
-    # Return a mock token; in production, use JWT or similar
-    return LoginResponse(user_id=user_id, token="mock-token")
+    # Get the user profile from pymes_trust
+    user_profile = db.query(models_db.PymeTrust).filter(
+        models_db.PymeTrust.ruc == login_req.ruc
+    ).first()
 
-
-@app.get("/profile/{user_id}", response_model=UserProfile, tags=["User Profile"], summary="Get User Profile")
-def get_profile(user_id: str):
-    profile = fake_db.get(user_id)
-    if not profile:
+    if not user_profile:
         raise HTTPException(status_code=404, detail="User profile not found")
-    return profile
 
+    return models.LoginResponse(
+        ruc=user_profile.ruc,
+        pyme_name=user_profile.pyme_name,
+        trust_score=user_profile.trust_score,
+        tier=user_profile.tier,
+        token="mock-token"
+    )
 
-@app.post("/opt-in", tags=["User Profile"], summary="User Opt-In/Out")
-def opt_in(opt_req: OptInRequest):
-    profile = fake_db.get(opt_req.user_id)
-    if not profile:
+@app.get("/profile/{ruc}", response_model=models.UserProfile)
+def get_profile(ruc: str, db: Session = Depends(get_db)):
+    """
+    Retrieve the user's pymes_trust record.
+    """
+    user_profile = db.query(models_db.PymeTrust).filter(
+        models_db.PymeTrust.ruc == ruc
+    ).first()
+
+    if not user_profile:
         raise HTTPException(status_code=404, detail="User profile not found")
-    profile.opted_in = opt_req.opt_in
-    fake_db[opt_req.user_id] = profile
-    return {
-        "message": f"User has {'opted in' if opt_req.opt_in else 'opted out'} successfully."
-    }
 
+    return models.UserProfile(
+        ruc=user_profile.ruc,
+        pyme_name=user_profile.pyme_name,
+        trust_score=user_profile.trust_score,
+        tier=user_profile.tier
+    )
 
-@app.post("/recalculate_category/{user_id}", tags=["User Categorization"], summary="Recalculate User Category")
-def recalculate_category(user_id: str, background_tasks: BackgroundTasks):
-    profile = fake_db.get(user_id)
-    if not profile:
+@app.post("/recalculate_category/{ruc}")
+def recalculate_category(ruc: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    """
+    Schedule a background task that recalculates the user's trust_score and tier.
+    """
+    user_profile = db.query(models_db.PymeTrust).filter(
+        models_db.PymeTrust.ruc == ruc
+    ).first()
+
+    if not user_profile:
         raise HTTPException(status_code=404, detail="User profile not found")
-    # Add background task for user categorization
-    background_tasks.add_task(categorize_user, user_id)
+
+    background_tasks.add_task(update_category, ruc)
     return {"message": "Category recalculation initiated."}
 
-
-def categorize_user(user_id: str):
+def update_category(ruc: str):
     """
-    Background task function that fetches data from external APIs (mocked) 
-    and assigns a new tier to the user profile.
+    Background task: fetch new trust_score & tier, update the DB.
     """
     import time
-    from app.tasks import fetch_and_calculate_category
+    time.sleep(1)  # Simulate a processing delay
 
-    # Simulate processing delay
-    time.sleep(1)
+    db = SessionLocal()
+    try:
+        user_profile = db.query(models_db.PymeTrust).filter(
+            models_db.PymeTrust.ruc == ruc
+        ).first()
+        if user_profile:
+            new_score, new_tier = fetch_and_calculate_category(ruc)
+            user_profile.trust_score = new_score
+            user_profile.tier = new_tier
+            db.commit()
+            print(f"User {ruc} updated to trust_score={new_score}, tier={new_tier}")
+    finally:
+        db.close()
 
-    # Calculate new tier & badge
-    new_tier, badge_url = fetch_and_calculate_category(user_id)
-    profile = fake_db.get(user_id)
-    if profile:
-        profile.tier = new_tier
-        profile.badge_url = badge_url
-        fake_db[user_id] = profile
-    print(f"User {user_id} categorized as {new_tier}")
-
-
+# If using a custom script entry in pyproject.toml, define main() here:
 def main():
-    import uvicorn
     uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True)
-
 
 if __name__ == "__main__":
     main()

@@ -1,19 +1,19 @@
+# app/tasks.py
 import random
-from bedrock_integration import bedrock_model_adjustment
+from app.bedrock_integration import bedrock_model_adjustment
 
-def fetch_and_calculate_category(user_id: str):
+def fetch_and_calculate_category(ruc: str):
     """
-    Simulate data aggregation from external APIs and calculate a categorization score.
-    In production, replace these with real API calls.
+    Simulate fetching data from external sources and computing a trust score.
+    Returns a new trust_score (int) and a new tier (int).
     """
-    # Simulated data from various sources (0-100 scale).
     financial_health = random.uniform(0, 100)
     business_reputation = random.uniform(0, 100)
     digital_presence = random.uniform(0, 100)
     legal_status = random.uniform(0, 100)
     web_seo_metrics = random.uniform(0, 100)
 
-    # Weighted scoring mechanism.
+    # Weighted scoring
     score = (
         0.40 * financial_health +
         0.25 * business_reputation +
@@ -22,7 +22,7 @@ def fetch_and_calculate_category(user_id: str):
         0.05 * web_seo_metrics
     )
 
-    # Incorporate an AI-based adjustment via a bedrock model.
+    # AI-based adjustment
     adjustment = bedrock_model_adjustment({
         "financial_health": financial_health,
         "business_reputation": business_reputation,
@@ -31,17 +31,14 @@ def fetch_and_calculate_category(user_id: str):
         "web_seo_metrics": web_seo_metrics
     })
 
-    # For demonstration, take an average of the computed score and the AI adjustment.
     final_score = (score + adjustment) / 2
+    new_trust_score = int(final_score)
 
-    # Determine tier based on final score.
     if final_score >= 85:
-        tier = "Platinum"
+        new_tier = 2  # Platinum
     elif final_score >= 70:
-        tier = "Gold"
+        new_tier = 1  # Gold
     else:
-        tier = "Silver"
+        new_tier = 0  # Silver
 
-    # Map tier to a badge URL (assumes these assets are hosted on a CDN).
-    badge_url = f"https://cdn.trustednetwork.bg/badges/{tier.lower()}.png"
-    return tier, badge_url
+    return new_trust_score, new_tier
