@@ -8,3 +8,15 @@ variable "env" {
   type    = string
   default = "PROD"
 }
+
+variable "db-username" {
+  type    = string
+  default = "dbadmin"
+  sensitive = true
+}
+
+variable "db-password" {
+  type    = string
+  default = "P4$$w0rD"
+  sensitive = true
+}

@@ -31,6 +31,25 @@ resource "aws_appconfig_hosted_configuration_version" "hc-cosierra" {
     })
 }
 
+
+resource "aws_db_instance" "db-cosierra" {
+  allocated_storage    = 10
+  db_name              = "cosierraDb"
+  engine               = "mysql"
+  engine_version       = "8.0"
+  instance_class       = "db.m5.large"
+  username             = "${var.db-username}"
+  password             = "${var.db-password}"
+  parameter_group_name = "default.mysql8.0"
+  skip_final_snapshot  = true
+
+  tags = {
+    Environment = var.env
+    Solution    = var.solutionName
+  }
+}
+
+
 resource "aws_ecr_repository" "cosierra-ecr" {
   name                 = "ecr-cosierra"
   image_tag_mutability = "MUTABLE"
@@ -59,7 +78,8 @@ resource "aws_resourcegroups_group" "cosierra-prod-rg" {
     {
       "ResourceTypeFilters": [
         "AWS::ECR::Repository",
-        "AWS::AppConfig::ConfigurationProfile"
+        "AWS::AppConfig::ConfigurationProfile",
+        "AWS::RDS::DBInstance"
       ],
       "TagFilters": [
         {
