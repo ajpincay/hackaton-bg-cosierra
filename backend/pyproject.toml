@@ -3,14 +3,24 @@ name = "backend"
 version = "0.1.0"
 description = "A Python-based backend ecosystem for Banco de Guayaquil's Trusted Network, providing SMEs and entrepreneurs a secure, categorized platform for B2B collaboration and growth."
 authors = [
-    {name = "Nmawyin",email = "131683077+Nmawyin@users.noreply.github.com"}
+    {name = "Nmawyin", email = "131683077+Nmawyin@users.noreply.github.com"}
 ]
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "fastapi (>=0.115.11,<0.116.0)"
+    "fastapi (>=0.115.11,<0.116.0)",
+    "celery (>=5.4.0,<6.0.0)",
+    "uvicorn (>=0.34.0,<0.35.0)",
+    "pydantic (>=2.10.6,<3.0.0)"
 ]
 
+[tool.poetry.scripts]
+start = "app.main:main"
+
+[tool.poetry]
+packages = [
+    { include = "app" }
+]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
