@@ -1,6 +1,6 @@
 # app/tasks.py
 import random
-from app.bedrock_integration import bedrock_model_adjustment
+from app.services.bedrock_integration import bedrock_model_adjustment
 
 def fetch_and_calculate_category(ruc: str):
     """

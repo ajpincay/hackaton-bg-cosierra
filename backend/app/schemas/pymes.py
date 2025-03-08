@@ -1,4 +1,4 @@
-# app/models.py
+# app/schemas/pymes.py
 from pydantic import BaseModel
 
 class LoginRequest(BaseModel):
