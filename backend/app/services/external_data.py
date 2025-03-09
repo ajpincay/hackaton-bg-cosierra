@@ -17,6 +17,8 @@ class AsyncExternalDataService:
         """Asynchronously fetch data from an API endpoint."""
         headers = {"HCK-API-Key": AsyncExternalDataService.API_KEY} if AsyncExternalDataService.API_KEY else {}
 
+        params = {**params, "pageNumber": 1, "pageSize": 100000}
+
         try:
             response = await client.get(f"{BASE_URL}/{endpoint}", params=params, headers=headers, timeout=10.0)
             response.raise_for_status()

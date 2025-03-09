@@ -60,3 +60,12 @@ class NetworkRecommendation(BaseModel):
 
 class NetworkResponse(BaseModel):
     recommendations: list[NetworkRecommendation]
+
+class PymeView(BaseModel):
+    ruc: str
+    pyme_name: str
+    sector: str
+    location: str
+    peer_review: int
+    connected: bool
+    pending: bool

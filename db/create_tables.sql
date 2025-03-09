@@ -53,3 +53,15 @@ CREATE TABLE IF NOT EXISTS peer_pymes_trust_scores (
     score_receiver VARCHAR(13) DEFAULT FALSE,
     peer_trust_score TINYINT DEFAULT 0,
 );
+
+-- Table for PyME Connections
+DROP Table IF EXISTS pyme_connections;
+CREATE TABLE IF NOT EXISTS pyme_connections (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    requester_ruc VARCHAR(13) NOT NULL,
+    receiver_ruc VARCHAR(13) NOT NULL,
+    status ENUM('Pending', 'Accepted', 'Rejected') DEFAULT 'Pending',
+    requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    accepted_at TIMESTAMP NULL DEFAULT NULL,
+    UNIQUE(requester_ruc, receiver_ruc) -- Avoid duplicate requests
+);
