@@ -38,6 +38,7 @@ resource "aws_db_instance" "db-cosierra" {
   db_name              = "cosierraDb"
   engine               = "mysql"
   engine_version       = "8.0"
+  identifier           = "cosierra-db"
   instance_class       = "db.m5.large"
   username             = "${var.db-username}"
   password             = "${var.db-password}"
