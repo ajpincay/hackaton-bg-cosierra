@@ -17,11 +17,12 @@ class UserProfile(BaseModel):
     ruc: str
     pyme_name: str
     trust_score: int
-    tier: int
+    tier: str
+    financial_metrics: Optional[dict]
 
 class DashboardData(BaseModel):
     trust_score: int
-    tier: int
+    tier: str
     recent_activity: list
     certifications_completed: int
     certifications_pending: int
@@ -47,14 +48,14 @@ class ConfidenceDetail(BaseModel):
 
 class ConfidenceResponse(BaseModel):
     total_score: float
-    tier: int
+    tier: str
     breakdown: list[ConfidenceDetail]
 
 class NetworkRecommendation(BaseModel):
     ruc: str
     pyme_name: str
     trust_score: int
-    tier: int
+    tier: str
     compatibility_score: float
 
 class NetworkResponse(BaseModel):
