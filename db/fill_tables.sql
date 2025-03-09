@@ -54,3 +54,26 @@ VALUES
 INSERT INTO
     mock_pymes (ruc, person_type, business_type, pyme_name, province, city, division, section, est_date, total_assets, size)
 VALUES ('1000223008','Jurídica','Por Acciones Simplificadas','RENOVADORA LA HUELLA S.A.S.','Santo Domingo de los Tsáchilas','Santo Domingo','Fabricación de productos de caucho y de plástico', 'Industrias Manufactureras','2016-03-29',439087,'Pequeña')
+
+INSERT INTO peer_pymes_trust_scores (score_issuer, score_receiver, peer_trust_score)
+VALUES
+    ('1000336710', '1000223008', 90),
+    ('1000336710', '1000223008', 90),
+    ('1181753730', '1000223008', 90),
+    ('1033690567', '1000223008', 90),
+    ('1033690567', '1006137571', 90),
+    ('1181753730', '1006137571', 90);
+
+INSERT INTO pyme_connections (requester_ruc, receiver_ruc)
+VALUES
+    ('1181753730','1000223008'),
+    ('1181753730','1006137571'),
+    ('1181753730','1033690567'),
+    ('1181753730','1019283518')
+
+INSERT INTO pymes_certificates (ruc, certificate_name, issuer, issue_date)
+VALUES
+    ('1033690567','Certificación de procesos', 'IEEE', '2025-03-01'),
+    ('1033690567','Certificación de idoneidad', 'Empresa X', '2025-03-01'),
+    ('1033690567','Certificacion sercop', 'SERCOP', '2025-03-01'),
+    ('1033690567','Certificación ambiental', 'Entidad Y', '2025-03-01');

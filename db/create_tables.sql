@@ -39,20 +39,19 @@ CREATE TABLE IF NOT EXISTS mock_pymes (
 DROP Table IF EXISTS pymes_certificates;
 CREATE TABLE IF NOT EXISTS pymes_certificates (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    ruc VARCHAR(13) NOT NULL UNIQUE,
-    next_tier TINYINT  DEFAULT 0,
+    ruc VARCHAR(13) NOT NULL,
     certificate_name VARCHAR(250) NOT NULL,
     issuer VARCHAR(250) NOT NULL,
     issue_date DATE,
-    expiration_date DATE
+    expiration_date DATE DEFAULT NULL
 );
 
 -- pymes_trust_score_peers
 DROP Table IF EXISTS peer_pymes_trust_scores;
 CREATE TABLE IF NOT EXISTS peer_pymes_trust_scores (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    score_issuer VARCHAR(13) NOT NULL UNIQUE,
-    score_receiver VARCHAR(13) DEFAULT FALSE,
+    score_issuer VARCHAR(13) NOT NULL,
+    score_receiver VARCHAR(13) NOT NULL,
     peer_trust_score TINYINT DEFAULT 0
 );
 
