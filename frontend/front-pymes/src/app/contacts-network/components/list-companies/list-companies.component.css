@@ -1,0 +1,41 @@
+.hero-icon{
+    background-color: #ccc;
+    width: 30px;
+    border-radius: 50%;
+}
+
+.hero-icon>svg{
+    padding: 5px;
+}
+
+
+
+.company-card {
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.rating {
+    color: #ffc107; /* Color dorado para la estrella */
+}
+
+.btn-connect {
+    background-color: black;
+    color: white;
+    width: 100%;
+}
+
+.company-icon {
+    font-size: 24px;
+    color: #6c757d;
+}
+
+
+
+::ng-deep .mat-mdc-tab.mdc-tab--active .mdc-tab__text-label {
+    color: var(--primary-color) !important;
+}
+
+::ng-deep .mat-mdc-tab .mdc-tab-indicator__content--underline {
+    border-color: var(--primary-color) !important;
+}
