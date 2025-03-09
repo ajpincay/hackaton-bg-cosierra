@@ -43,7 +43,6 @@ CREATE TABLE IF NOT EXISTS pymes_certificates (
     sri_compliance Boolean DEFAULT FALSE,
     credit_score TINYINT DEFAULT 0,
     next_tier TINYINT  DEFAULT 0,
-    FOREIGN KEY (ruc) REFERENCES mock_pymes(ruc)
 );
 
 -- pymes_trust_score_peers
@@ -53,6 +52,4 @@ CREATE TABLE IF NOT EXISTS peer_pymes_trust_scores (
     score_issuer VARCHAR(13) NOT NULL UNIQUE,
     score_receiver VARCHAR(13) DEFAULT FALSE,
     peer_trust_score TINYINT DEFAULT 0,
-    FOREIGN KEY (score_issuer) REFERENCES mock_pymes(ruc),
-    FOREIGN KEY (score_receiver) REFERENCES mock_pymes(ruc)
 );
