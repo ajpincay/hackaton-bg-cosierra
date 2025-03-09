@@ -45,14 +45,14 @@ jobs:
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: ${{ secrets.FRONTEND_REPO_NAME }}
-        IMAGE_TAG: ${{ steps.calculate-version.outputs.version-string }}
-      run: docker build ./frontend/front-pymes -t $ECR_REGISTRY/$ECR_REPOSITORY:latest
+        #IMAGE_TAG: ${{ steps.calculate-version.outputs.version-string }}
+      run: docker build ./frontend/front-pymes -t $ECR_REGISTRY/$ECR_REPOSITORY
 
     - name: Push image to Amazon ECR
       id: push-image 
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: ${{ secrets.FRONTEND_REPO_NAME }}
-        IMAGE_TAG: ${{ steps.calculate-version.outputs.version-string }}
-      run: docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+        #IMAGE_TAG: ${{ steps.calculate-version.outputs.version-string }}
+      run: docker push $ECR_REGISTRY/$ECR_REPOSITORY
         
