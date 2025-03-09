@@ -135,6 +135,7 @@ resource "aws_route_table_association" "public-associantion" {
 resource "aws_subnet" "eks-subnet-public" {
   vpc_id            = aws_vpc.eks-vpc.id
   cidr_block        = "10.0.1.0/24"
+  availability_zone = "us-west-2a"
   map_public_ip_on_launch = true
 
   tags = {
