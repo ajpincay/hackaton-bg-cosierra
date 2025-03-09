@@ -1,6 +1,7 @@
 # schemas/pymes.py
 from pydantic import BaseModel
 from typing import Optional
+from datetime import date
 
 class LoginRequest(BaseModel):
     ruc: str
@@ -37,6 +38,12 @@ class BankPortalData(BaseModel):
 class CertificationData(BaseModel):
     name: str
     status: str  # e.g., "Completed", "Pending"
+
+class CertificationCreate(BaseModel):
+    name: str
+    issuer: str
+    issue_date: date
+    expiration_date: date | None = None
 
 class CertificationsResponse(BaseModel):
     certifications: list[CertificationData]

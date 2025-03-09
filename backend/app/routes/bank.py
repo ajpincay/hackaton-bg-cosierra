@@ -1,10 +1,19 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.core.db import get_db
 from app.models import PymeTrust, CreditOption, PymeCredit
 from app.schemas import BankPortalData
+from app.services.api_hack_bg import AsyncExternalDataService
+from pydantic import BaseModel
+from datetime import date
 
 router = APIRouter()
+
+class CreditRequest(BaseModel):
+    ruc: str
+    credit_type_id: int
+    amount_requested: int
+    term: int
 
 @router.get("/{ruc}", response_model=BankPortalData)
 def get_bank_portal(ruc: str, db: Session = Depends(get_db)):
@@ -29,12 +38,13 @@ def get_bank_portal(ruc: str, db: Session = Depends(get_db)):
         secure_messages=["Interest rates updated", "Please review your monthly statement"]
     )
 
-@router.get("/list/credits", tags=["Banco Guayaquil"])
+@router.get("/list/credits")
 def get_all_credits(db: Session = Depends(get_db)):
     """
     Fetches and returns all available credit types from the database.
     """
     credits = db.query(CreditOption).all()
+    
     credit_list = [
         {
             "title": credit.title,
@@ -48,77 +58,69 @@ def get_all_credits(db: Session = Depends(get_db)):
         }
         for credit in credits
     ]
+    
     return {"available_credits": credit_list}
 
-@router.get("/list/credits/{credit_type}", tags=["Banco Guayaquil"])
-def get_credit_details(credit_type: str, db: Session = Depends(get_db)):
+@router.get("/list/credits/recommended/{ruc}")
+async def get_recommended_credits(ruc: str, category: str = Query(None), db: Session = Depends(get_db)):
     """
-    Fetches details for a specific credit type from the database.
+    Fetches recommended credits for a given PYME based on its trust tier and commercial activity.
     """
-    credit = db.query(CreditOption).filter(CreditOption.title == credit_type).first()
-    if not credit:
+    pyme = db.query(PymeTrust).filter(PymeTrust.ruc == ruc).first()
+    if not pyme:
+        raise HTTPException(status_code=404, detail="PYME not found")
+    
+    persona_data = await AsyncExternalDataService.get_persona({"cedula": ruc})
+    establecimiento_data = await AsyncExternalDataService.get_establecimiento({"cedula": ruc})
+    actividad_economica = persona_data.get("actividadEconomica") or establecimiento_data.get("actividadEconomica")
+    
+    credits = db.query(CreditOption).all()
+    recommended_credits = []
+    
+    for credit in credits:
+        recommended = credit.recommended
+        if actividad_economica and actividad_economica.lower() in credit.title.lower():
+            recommended = True
+        
+        if category and category.lower() not in credit.title.lower():
+            continue
+        
+        recommended_credits.append({
+            "title": credit.title,
+            "description": credit.description,
+            "amount": credit.amount,
+            "interest_rate": credit.interest_rate,
+            "term": credit.term,
+            "requirements": credit.requirements,
+            "recommended": recommended,
+            "link": credit.link
+        })
+    
+    return {"recommended_credits": recommended_credits}
+
+@router.post("/solicit/credit")
+def solicit_credit(request: CreditRequest, db: Session = Depends(get_db)):
+    """
+    Endpoint to solicit a credit.
+    """
+    credit_type = db.query(CreditOption).filter(CreditOption.id == request.credit_type_id).first()
+    if not credit_type:
         raise HTTPException(status_code=404, detail="Credit type not found")
     
-    return {
-        "title": credit.title,
-        "description": credit.description,
-        "amount": credit.amount,
-        "interest_rate": credit.interest_rate,
-        "term": credit.term,
-        "requirements": credit.requirements,
-        "recommended": credit.recommended,
-        "link": credit.link
-    }
-
-@router.get("/list/credits/active/{ruc}", tags=["Banco Guayaquil"])
-def get_active_credits(ruc: str, db: Session = Depends(get_db)):
-    """
-    Fetches the active credits for a given PYME, including progress percentage.
-    """
-    active_credits = db.query(PymeCredit).filter(
-        PymeCredit.ruc == ruc, PymeCredit.status == "Active"
-    ).all()
+    new_credit = PymeCredit(
+        ruc=request.ruc,
+        credit_type_id=request.credit_type_id,
+        amount_approved=request.amount_requested,
+        interest_rate=credit_type.interest_rate,
+        term=request.term,
+        start_date=date.today(),
+        end_date=date.today().replace(month=date.today().month + request.term),
+        progress_percentage=0,
+        status="Pending"
+    )
     
-    if not active_credits:
-        return {"message": "No active credits found"}
+    db.add(new_credit)
+    db.commit()
+    db.refresh(new_credit)
     
-    credit_list = [
-        {
-            "credit_type": credit.credit_type_id,
-            "amount_approved": credit.amount_approved,
-            "interest_rate": credit.interest_rate,
-            "term": credit.term,
-            "start_date": credit.start_date,
-            "end_date": credit.end_date,
-            "progress_percentage": credit.progress_percentage,
-            "status": credit.status
-        }
-        for credit in active_credits
-    ]
-    return {"active_credits": credit_list}
-
-@router.get("/list/credits/completed/{ruc}", tags=["Banco Guayaquil"])
-def get_completed_credits(ruc: str, db: Session = Depends(get_db)):
-    """
-    Fetches completed credits for a given PYME.
-    """
-    completed_credits = db.query(PymeCredit).filter(
-        PymeCredit.ruc == ruc, PymeCredit.status == "Completed"
-    ).all()
-    
-    if not completed_credits:
-        return {"message": "No completed credits found"}
-    
-    credit_list = [
-        {
-            "credit_type": credit.credit_type_id,
-            "amount_approved": credit.amount_approved,
-            "interest_rate": credit.interest_rate,
-            "term": credit.term,
-            "start_date": credit.start_date,
-            "end_date": credit.end_date,
-            "status": credit.status
-        }
-        for credit in completed_credits
-    ]
-    return {"completed_credits": credit_list}
+    return {"message": "Credit solicitation submitted successfully", "credit_id": new_credit.id}

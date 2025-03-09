@@ -15,11 +15,11 @@
                     <h3 class="text-center mb-5">Inicia sesión</h3>
                     <form [formGroup]="loginForm" (ngSubmit)="loginUser()">
 
-                        <!--User-->
+                        <!--RUC-->
                         <div class="mb-3">
-                            <label class="mb-1"><b>Usuario</b></label>
-                            <input type="email" class="form-control form-control-sm bg-light fs-6"
-                                formControlName="email" placeholder="Usuario*" [maxlength]="50">
+                            <label class="mb-1"><b>RUC</b></label>
+                            <input type="text" class="form-control form-control-sm bg-light fs-6"
+                                formControlName="ruc" placeholder="RUC*" [maxlength]="50">
                         </div>
 
                         <!--Password-->

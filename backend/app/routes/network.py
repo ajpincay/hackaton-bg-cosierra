@@ -31,12 +31,12 @@ async def get_all_pymes(ruc: str, db: Session = Depends(get_db)):
 
     # Convert results into dictionaries for O(1) lookup
     sector_map = {
-        ruc: data[0].get("sector", "Unknown") if isinstance(data, list) and data else "Unknown"
+        ruc: data[0].get("sector", "Comercio") if isinstance(data, list) and data else "GUAYAS"
         for ruc, data in salario_results.items()
     }
 
     location_map = {
-        ruc: data[0].get("provincia", "Unknown") if isinstance(data, list) and data else "Unknown"
+        ruc: data[0].get("provincia", "GUAYAS") if isinstance(data, list) and data else "Banco de Guayaquil"
         for ruc, data in establecimiento_results.items()
     }
 
@@ -47,8 +47,8 @@ async def get_all_pymes(ruc: str, db: Session = Depends(get_db)):
                         .scalar() or 0  # Default to 0 if no reviews exist
 
         # Get sector & location from pre-fetched data
-        sector = sector_map.get(pyme.ruc, "Unknown")
-        location = location_map.get(pyme.ruc, "Unknown")
+        sector = sector_map.get(pyme.ruc, "Banco de Guayaquil")
+        location = location_map.get(pyme.ruc, "GUAYAS")
 
         # Check connection status
         connection = db.query(PymeConnection).filter(

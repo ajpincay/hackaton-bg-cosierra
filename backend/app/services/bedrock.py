@@ -98,7 +98,6 @@ def generate_financial_summary(metrics: Dict, language: str = "spanish") -> Dict
         inference_params={"maxTokens": 1024, "temperature": 0.7, "topP": 0.9, "topK": 40},
     )
 
-    print(f"Response from model: {response_text}")
     try:
         # Parse the extracted JSON
         response_json = extract_json(response_text)
@@ -112,8 +111,6 @@ def bedrock_model_adjustment(data: dict) -> float:
     Calls AWS Bedrock AI Model (Nova-Pro) for numerical score adjustments.
     Returns the adjusted score in a structured JSON format.
     """
-    print("\nData for score adjustment:")
-    print(data)
     
     # Define system instructions
     system_instructions = [
@@ -129,7 +126,6 @@ def bedrock_model_adjustment(data: dict) -> float:
         system_instructions=system_instructions,
         inference_params=inference_params,
     )
-    print(f"Response from model: {response_text}")
     try:
         # Parse the extracted JSON
         response_json = extract_json(response_text)
@@ -161,13 +157,7 @@ def get_titan_embedding(text: str) -> list:
 
         # Extract embedding
         embedding = response_body.get("embedding", [])
-        input_token_count = response_body.get("inputTextTokenCount", 0)
 
-        print("\nYour input:")
-        print(text)
-        print(f"Number of input tokens: {input_token_count}")
-        print(f"Size of the generated embedding: {len(embedding)}")
-        print("Embedding:", embedding)
 
         return embedding
 
