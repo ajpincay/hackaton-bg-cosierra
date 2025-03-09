@@ -32,20 +32,20 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
 
-    - name: Get commit hash
-      id: get-commit-hash
-      run: echo "::set-output name=commit-hash::$(git rev-parse --short HEAD)"
-
-    - name: Get timestamp
-      id: get-timestamp
-      run: echo "::set-output name=timestamp::$(date +'%Y-%m-%d-%H-%M')"
+    - name: calculate version
+      id: calculate-version
+      uses: bitshifted/git-auto-semver@v1
+    
+    - name: Use version
+      id: show-version
+      run: echo "Calculated version ${{ steps.calculate-version.outputs.version-string }}"
 
     - name: Build and tag the docker 
       id: build-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: ${{ secrets.FRONTEND_REPO_NAME }}
-        IMAGE_TAG: ${{ steps.get-commit-hash.outputs.commit-hash }}-${{ steps.get-timestamp.outputs.timestamp }}
+        IMAGE_TAG: ${{ steps.calculate-version.outputs.version-string }}
       run: docker build ./frontend/front-pymes -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
     - name: Push image to Amazon ECR
@@ -53,6 +53,6 @@ jobs:
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: ${{ secrets.FRONTEND_REPO_NAME }}
-        IMAGE_TAG: ${{ steps.get-commit-hash.outputs.commit-hash }}-${{ steps.get-timestamp.outputs.timestamp }}
+        IMAGE_TAG: ${{ steps.calculate-version.outputs.version-string }}
       run: docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         
