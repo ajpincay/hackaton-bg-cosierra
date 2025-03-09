@@ -2,7 +2,7 @@ import os
 import asyncio
 import httpx
 from fastapi import HTTPException
-from typing import Dict
+from typing import Dict, List
 
 # Base API URL
 BASE_URL = "https://api-hackathon-h0fxfrgwh3ekgge7.brazilsouth-01.azurewebsites.net/Hackathon"
@@ -82,3 +82,21 @@ class AsyncExternalDataService:
             tasks = [cls.fetch_data(endpoint, {"cedula": cedula}, client) for endpoint in endpoints]
             results = await asyncio.gather(*tasks)
         return dict(zip(endpoints, results))
+    
+    @classmethod
+    async def get_salario_batch(cls, cedulas: List[str]) -> Dict[str, Dict]:
+        """Fetch salario data for multiple RUCs asynchronously."""
+        async with httpx.AsyncClient() as client:
+            tasks = {cedula: cls.fetch_data("salario", {"cedula": cedula}, client) for cedula in cedulas}
+            results = await asyncio.gather(*tasks.values(), return_exceptions=True)
+
+        return {cedula: result if not isinstance(result, Exception) else {} for cedula, result in zip(tasks.keys(), results)}
+
+    @classmethod
+    async def get_establecimiento_batch(cls, cedulas: List[str]) -> Dict[str, Dict]:
+        """Fetch establecimiento data for multiple RUCs asynchronously."""
+        async with httpx.AsyncClient() as client:
+            tasks = {cedula: cls.fetch_data("establecimiento", {"cedula": cedula}, client) for cedula in cedulas}
+            results = await asyncio.gather(*tasks.values(), return_exceptions=True)
+
+        return {cedula: result if not isinstance(result, Exception) else {} for cedula, result in zip(tasks.keys(), results)}

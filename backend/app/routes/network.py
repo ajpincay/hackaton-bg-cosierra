@@ -1,12 +1,13 @@
 # routes/network.py
-from http.client import HTTPException
+from app.models.pymes import PeerPymesTrustScore, PymeConnection, PymeTrust
+from app.schemas.pymes import NetworkResponse, NetworkRecommendation, PymeView, PeerReviewCreate
 from app.services.external_data import AsyncExternalDataService
+from http.client import HTTPException
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from app.core.db import get_db
-from app.models.pymes import PeerPymesTrustScore, PymeConnection, PymeTrust
-from app.schemas.pymes import NetworkResponse, NetworkRecommendation, PymeView, PeerReviewCreate
+import asyncio
 
 router = APIRouter()
 
@@ -14,25 +15,40 @@ router = APIRouter()
 async def get_all_pymes(ruc: str, db: Session = Depends(get_db)):
     """
     Returns all PYMEs in the network, except the one with the given RUC.
+    Uses batch fetching for salario and establecimiento data to improve performance.
     """
     pymes = db.query(PymeTrust).filter(PymeTrust.ruc != ruc).all()
     recommendations = []
 
-    salario = await AsyncExternalDataService.get_salario(params={"cedula": ruc})
-    salario_data = salario[0] if isinstance(salario, list) and salario else {}
+    # Extract all RUCs from the PYMEs
+    all_rucs = [pyme.ruc for pyme in pymes]
 
-    sector = salario_data.get('sector', 'Unknown')
+    # Fetch sector and location data in parallel using batch methods
+    salario_results, establecimiento_results = await asyncio.gather(
+        AsyncExternalDataService.get_salario_batch(all_rucs),
+        AsyncExternalDataService.get_establecimiento_batch(all_rucs)
+    )
 
-    establecimiento = await AsyncExternalDataService.get_establecimiento(params={"cedula": ruc})
-    establecimiento_data = establecimiento[0] if isinstance(establecimiento, list) and establecimiento else {}
+    # Convert results into dictionaries for O(1) lookup
+    sector_map = {
+        ruc: data[0].get("sector", "Unknown") if isinstance(data, list) and data else "Unknown"
+        for ruc, data in salario_results.items()
+    }
 
-    location = establecimiento_data.get('provincia', 'Unknown')
+    location_map = {
+        ruc: data[0].get("provincia", "Unknown") if isinstance(data, list) and data else "Unknown"
+        for ruc, data in establecimiento_results.items()
+    }
 
     for pyme in pymes:
         # Obtain peer review score (average of all reviews received by this PyME)
         peer_review = db.query(func.avg(PeerPymesTrustScore.peer_trust_score))\
                         .filter(PeerPymesTrustScore.score_receiver == pyme.ruc)\
                         .scalar() or 0  # Default to 0 if no reviews exist
+
+        # Get sector & location from pre-fetched data
+        sector = sector_map.get(pyme.ruc, "Unknown")
+        location = location_map.get(pyme.ruc, "Unknown")
 
         # Check connection status
         connection = db.query(PymeConnection).filter(

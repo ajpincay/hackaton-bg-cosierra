@@ -1,12 +1,9 @@
 # app/main.py
 from fastapi import FastAPI
 from datetime import datetime, timezone
-
-
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
-# If you want to auto-create tables at startup (optional; 
-# in production you'd typically use migrations with Alembic)
 from app.core.db import engine
 from app.models import Base
 
@@ -22,6 +19,15 @@ app = FastAPI(
     version="0.1.0",
     docs_url="/docs",
 )
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Record the startup time for health-check purposes
 startup_time = datetime.now(timezone.utc)
 
@@ -45,7 +51,6 @@ app.include_router(certifications.router, prefix="/certifications", tags=["Certi
 app.include_router(confidence.router, prefix="/confidence", tags=["Confidence"])
 app.include_router(network.router, prefix="/network", tags=["Network"])
 app.include_router(profile.router, prefix="/profile", tags=["Profile"])
-
 
 def main():
     """
