@@ -23,15 +23,15 @@ spec:
             - name: DATABASE_URL
               value: "mysql"
             - name: API_HCK_BG_KEY
-              value: ""
+              value: "api-key"
             - name: AWS_ACCESS_KEY_ID
-              value: ""
+              value: "abc"
             - name: AWS_SECRET_ACCESS_KEY
-              value: ""
+              value: "def"
             - name: AWS_DEFAULT_REGION
-              name: ""
+              name: "us-west-2"
             - name: AWS_SESSION_TOKEN
-              name: ""
+              name: "asds"
 
 ---
 apiVersion: apps/v1
