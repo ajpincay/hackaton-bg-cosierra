@@ -1,123 +1,135 @@
-# app/routes/auth.py
-from app.core.tasks import calculate_trust_score
-from app.models.pymes import TierEnum
-from app.services.external_data_service import ExternalDataService
-from app.services.bedrock_integration import bedrock_model_adjustment
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-
 from app.core.db import get_db
-from app.models import MockLogIn, PymeTrust
-from app.schemas import LoginRequest, LoginResponse, UserProfile
+from app.models import PymeTrust, CreditOption, PymeCredit
+from app.schemas import BankPortalData
+from app.services.api_hack_bg import AsyncExternalDataService
 
 router = APIRouter()
 
-
-@router.post("/login", response_model=LoginResponse)
-def login(login_req: LoginRequest, db: Session = Depends(get_db)):
+@router.get("/{ruc}", response_model=BankPortalData)
+def get_bank_portal(ruc: str, db: Session = Depends(get_db)):
     """
-    Mock login endpoint that calculates trust score and tier for a PYME.
-    For demonstration, we'll use external data to calculate the trust score.
+    Returns bank-specific info for a given PYME:
+      - Available credit lines
+      - Application status
+      - Secure messages
     """
-    # Step 1: Query the persona endpoint using cedula = login_req.ruc
-    persona_data = ExternalDataService.get_persona({"cedula": login_req.ruc})
-    if not persona_data or len(persona_data) == 0:
-        raise HTTPException(status_code=404, detail="No user found in persona")
-    persona = persona_data[0]
-    if persona.get("esCliente") != 1:
-        raise HTTPException(status_code=404, detail="User is not a client")
+    pyme = db.query(PymeTrust).filter(PymeTrust.ruc == ruc).first()
+    if not pyme:
+        raise HTTPException(status_code=404, detail="PYME not found")
 
-    # Step 2: Query salario and supercia for the cedula
-    salario_data = ExternalDataService.get_salario({"cedula": login_req.ruc})
-    supercia_data_persona = ExternalDataService.get_supercia({"cedula": login_req.ruc})
-    in_salario = salario_data is not None and len(salario_data) > 0
-    in_supercia = supercia_data_persona is not None and len(supercia_data_persona) > 0
-
-    # Step 3: Check for special case using salario's rucEmpresa in supercia
-    special_case = False
-    special_ruc = None
-    special_nombreEmpresa = None
-    if in_salario:
-        for rec in salario_data:
-            supercia_data_empresa = ExternalDataService.get_supercia({"cedula": rec.get("rucEmpresa")})
-            if supercia_data_empresa and len(supercia_data_empresa) > 0:
-                special_case = True
-                special_ruc = rec.get("rucEmpresa")
-                special_nombreEmpresa = rec.get("nombreEmpresa")
-                break
-
-    # Step 4: Determine final pymes_trust values
-    if special_case:
-        final_ruc = special_ruc
-        final_pyme_name = special_nombreEmpresa[:35]
-    else:
-        final_ruc = login_req.ruc  # use the cedula
-        constructed_name = f"{persona.get('nombres','')}_{persona.get('apellidos','')} S.A."
-        final_pyme_name = constructed_name[:35]
-
-    # Step 5: Fetch additional external data for better trust score calculation
-    auto_data = ExternalDataService.get_auto({"cedula": login_req.ruc})
-    establecimiento_data = ExternalDataService.get_establecimiento({"cedula": login_req.ruc})
-    scoreburo_data = ExternalDataService.get_scoreburo({"cedula": login_req.ruc})
+    # Fetch available credit lines from the database
+    available_credits = db.query(CreditOption).all()
+    credit_lines = [credit.title for credit in available_credits]
     
-    # Calculate trust score and tier using external data
-    trust_score, tier_str = calculate_trust_score(
-        login_req.ruc, persona, salario_data, supercia_data_persona, auto_data, establecimiento_data, scoreburo_data
+    return BankPortalData(
+        welcome_message=f"Welcome to BANCO DE GUAYAQUIL's portal, {pyme.pyme_name}!",
+        available_credit_lines=credit_lines,
+        application_status="Pending" if pyme.trust_score < 85 else "Approved",
+        secure_messages=["Interest rates updated", "Please review your monthly statement"]
     )
 
-    # Step 6: Check if the user exists in mock_log_in
-    existing_login = db.query(MockLogIn).filter(MockLogIn.ruc == login_req.ruc).first()
-    if not existing_login:
-        # First login: Create a new pymes_trust record and add to mock_log_in
-        new_pyme = PymeTrust(
-            ruc=final_ruc,
-            pyme_name=final_pyme_name,
-            trust_score=trust_score,
-            tier=TierEnum(tier_str)  # Convert tier_str ("Plata", "Oro", "Platino", "N/A") to TierEnum
-        )
-        db.add(new_pyme)
-        db.flush()  # Ensure new_pyme is persisted before using it
+@router.get("/list/credits", tags=["Banco Guayaquil"])
+async def get_all_credits(db: Session = Depends(get_db)):
+    """
+    Fetches and returns all available credit types from the database.
+    Determines if the credit is recommended based on the PyME's commercial activity.
+    """
+    credits = db.query(CreditOption).all()
+    
+    # Fetch external persona data
+    persona_data = await AsyncExternalDataService.get_persona({"cedula": "some_ruc"})
+    actividad_economica = persona_data.get("profesion") or persona_data.get("actividadEconomica")
+    
+    credit_list = []
+    for credit in credits:
+        recommended = credit.recommended
+        if actividad_economica and actividad_economica.lower() in credit.title.lower():
+            recommended = True
         
-        new_login = MockLogIn(
-            ruc=login_req.ruc,
-            password=login_req.password
-        )
-        db.add(new_login)
-        db.commit()
-        db.refresh(new_pyme)
-        response_pyme = new_pyme
-    else:
-        # Returning user: update trust score and tier
-        pyme = db.query(PymeTrust).filter(PymeTrust.ruc == login_req.ruc).first()
-        if not pyme:
-            raise HTTPException(status_code=404, detail="Inconsistency: pymes_trust record missing.")
-        pyme.trust_score = trust_score
-        pyme.tier = TierEnum(tier_str)
-        db.commit()
-        db.refresh(pyme)
-        response_pyme = pyme
+        credit_list.append({
+            "title": credit.title,
+            "description": credit.description,
+            "amount": credit.amount,
+            "interest_rate": credit.interest_rate,
+            "term": credit.term,
+            "requirements": credit.requirements,
+            "recommended": recommended,
+            "link": credit.link
+        })
+    
+    return {"available_credits": credit_list}
 
-    return LoginResponse(
-        ruc=response_pyme.ruc,
-        pyme_name=response_pyme.pyme_name,
-        trust_score=response_pyme.trust_score,
-        tier=response_pyme.tier.value if isinstance(response_pyme.tier, TierEnum) else response_pyme.tier,
-        token="mock-token"
-    )
-
-@router.get("/logout")
-def logout():
+@router.get("/list/credits/{credit_type}", tags=["Banco Guayaquil"])
+def get_credit_details(credit_type: str, db: Session = Depends(get_db)):
     """
-    Mock logout endpoint. In a real scenario, you'd revoke JWT or session.
+    Fetches details for a specific credit type from the database.
     """
-    return {"message": "Logged out successfully"}
+    credit = db.query(CreditOption).filter(CreditOption.title == credit_type).first()
+    if not credit:
+        raise HTTPException(status_code=404, detail="Credit type not found")
+    
+    return {
+        "title": credit.title,
+        "description": credit.description,
+        "amount": credit.amount,
+        "interest_rate": credit.interest_rate,
+        "term": credit.term,
+        "requirements": credit.requirements,
+        "recommended": credit.recommended,
+        "link": credit.link
+    }
 
-@router.get("/me")
-def get_current_user():
+@router.get("/list/credits/active/{ruc}", tags=["Banco Guayaquil"])
+def get_active_credits(ruc: str, db: Session = Depends(get_db)):
     """
-    Example endpoint to get current user details if using a token-based approach.
-    For the MVP, you can mock this or return static data.
+    Fetches the active credits for a given PYME, including progress percentage.
     """
-    return {"message": "Your user info goes here (mocked)."}
+    active_credits = db.query(PymeCredit).filter(
+        PymeCredit.ruc == ruc, PymeCredit.status == "Active"
+    ).all()
+    
+    if not active_credits:
+        return {"message": "No active credits found"}
+    
+    credit_list = [
+        {
+            "credit_type": credit.credit_type_id,
+            "amount_approved": credit.amount_approved,
+            "interest_rate": credit.interest_rate,
+            "term": credit.term,
+            "start_date": credit.start_date,
+            "end_date": credit.end_date,
+            "progress_percentage": credit.progress_percentage,
+            "status": credit.status
+        }
+        for credit in active_credits
+    ]
+    return {"active_credits": credit_list}
 
-
+@router.get("/list/credits/completed/{ruc}", tags=["Banco Guayaquil"])
+def get_completed_credits(ruc: str, db: Session = Depends(get_db)):
+    """
+    Fetches completed credits for a given PYME.
+    """
+    completed_credits = db.query(PymeCredit).filter(
+        PymeCredit.ruc == ruc, PymeCredit.status == "Completed"
+    ).all()
+    
+    if not completed_credits:
+        return {"message": "No completed credits found"}
+    
+    credit_list = [
+        {
+            "credit_type": credit.credit_type_id,
+            "amount_approved": credit.amount_approved,
+            "interest_rate": credit.interest_rate,
+            "term": credit.term,
+            "start_date": credit.start_date,
+            "end_date": credit.end_date,
+            "status": credit.status
+        }
+        for credit in completed_credits
+    ]
+    return {"completed_credits": credit_list}

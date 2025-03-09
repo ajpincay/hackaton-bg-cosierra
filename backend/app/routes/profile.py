@@ -1,4 +1,6 @@
 # routes/profile.py
+from app.services.api_hack_bg import AsyncExternalDataService
+from app.core.sme_metrics import FinancialMetrics
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.core.db import get_db
@@ -8,19 +10,23 @@ from app.schemas.pymes import UserProfile
 router = APIRouter()
 
 @router.get("/{ruc}", response_model=UserProfile)
-def get_profile(ruc: str, db: Session = Depends(get_db)):
+async def get_profile(ruc: str, db: Session = Depends(get_db)):
     """
     Returns the PYME's detailed profile information.
     """
     pyme = db.query(PymeTrust).filter(PymeTrust.ruc == ruc).first()
     if not pyme:
         raise HTTPException(status_code=404, detail="PYME not found")
+    
+    raw_data = await AsyncExternalDataService.get_all_data(ruc)
+    metrics = FinancialMetrics.calculate_metrics(raw_data)
 
     return UserProfile(
         ruc=pyme.ruc,
         pyme_name=pyme.pyme_name,
         trust_score=pyme.trust_score,
-        tier=pyme.tier
+        tier=pyme.tier,
+        financial_metrics=metrics
     )
 
 @router.put("/{ruc}", response_model=UserProfile)

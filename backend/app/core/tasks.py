@@ -1,79 +1,87 @@
 # app/tasks.py
 import random
 from typing import Tuple
-from app.services.bedrock_integration import bedrock_model_adjustment
-from app.models.pymes import TierEnum
+from app.services.bedrock import bedrock_model_adjustment
+from app.models.pymes import PymeTrust, TierEnum
+from app.core.db import get_db
+from app.services.api_hack_bg import AsyncExternalDataService
+from app.core.sme_metrics import FinancialMetrics
+from fastapi import Depends
+from sqlalchemy.orm import Session
 
-def fetch_and_calculate_category(ruc: str):
+def determine_tier(score: int) -> TierEnum:
     """
-    Simulate fetching data from external sources and computing a trust score.
-    Returns a new trust_score (int) and a new tier (int).
+    Determines the tier based on the given trust score.
     """
-    financial_health = random.uniform(0, 100)
-    business_reputation = random.uniform(0, 100)
-    digital_presence = random.uniform(0, 100)
-    legal_status = random.uniform(0, 100)
-    web_seo_metrics = random.uniform(0, 100)
+    if score >= 85:
+        return TierEnum.PLATINO
+    elif score >= 70:
+        return TierEnum.ORO
+    elif score >= 1:
+        return TierEnum.PLATA
+    return TierEnum.NA
 
-    # Weighted scoring
-    score = (
-        0.40 * financial_health +
-        0.25 * business_reputation +
-        0.20 * digital_presence +
-        0.10 * legal_status +
-        0.05 * web_seo_metrics
-    )
+def fetch_and_calculate_category(ruc: str, db: Session = Depends(get_db)) -> Tuple[int, TierEnum]:
+    """
+    Fetch data from external sources and computing a trust score.
+    Returns a new trust_score (int) and a new tier (TierEnum).
+    """
+    factors = {
+        "financial_health": random.uniform(0, 100),
+        "business_reputation": random.uniform(0, 100),
+        "digital_presence": random.uniform(0, 100),
+        "legal_status": random.uniform(0, 100),
+        "web_seo_metrics": random.uniform(0, 100),
+    }
+
+    # Obtain the actual trust score from the database
+    pyme = db.query(PymeTrust).filter(PymeTrust.ruc == ruc).first()
+
+    score = pyme.trust_score
 
     # AI-based adjustment
-    adjustment = bedrock_model_adjustment({
-        "financial_health": financial_health,
-        "business_reputation": business_reputation,
-        "digital_presence": digital_presence,
-        "legal_status": legal_status,
-        "web_seo_metrics": web_seo_metrics
-    })
-
+    adjustment = bedrock_model_adjustment(factors)
     final_score = (score + adjustment) / 2
     new_trust_score = int(final_score)
-
-    if final_score >= 85:
-        new_tier = 2  # Platinum
-    elif final_score >= 70:
-        new_tier = 1  # Gold
-    else:
-        new_tier = 0  # Silver
+    new_tier = determine_tier(new_trust_score)
 
     return new_trust_score, new_tier
 
-
-
-def calculate_trust_score(ruc, persona, salario_data, supercia_data_persona, auto_data, establecimiento_data, scoreburo_data) -> Tuple[int, str]:
+async def calculate_trust_score(
+    ruc: str,
+    persona: dict,
+    salario_data: list,
+    supercia_data_persona: list,
+    auto_data: list,
+    establecimiento_data: list,
+    scoreburo_data: list
+) -> Tuple[int, TierEnum]:
     """
-    Mock function that calculates a random trust_score and assigns a tier.
-    Tiers: 'N/A', 'Plata', 'Oro', 'Platino'
+    Function that calculates a trust_score and assigns a tier.
     """
     base_score = 5
-        # Bonus for being an accepted client
-    if persona.get("esCliente") == 1:
-        base_score += 10
-    if salario_data and len(salario_data) > 0:
-        base_score += 10
-    if supercia_data_persona and len(supercia_data_persona) > 0:
-        base_score += 10
-    if auto_data and len(auto_data) > 0:
-        base_score += 5
-    if establecimiento_data and len(establecimiento_data) > 0:
-        base_score += 5
-    if scoreburo_data and len(scoreburo_data) > 0:
-        base_score += 10
+    print("Calculating trust score for", ruc)
+    print("Persona data:", persona)
+    print("Salario data:", salario_data)
+    print("Supercia data (persona):", supercia_data_persona)
+    print("Auto data:", auto_data)
+    print("Establecimiento data:", establecimiento_data)
+    print("Scoreburo data:", scoreburo_data)
+
+    metrics = FinancialMetrics.calculate_metrics(
+        {
+            "persona": persona,
+            "salario": salario_data,
+            "supercia_persona": supercia_data_persona,
+            "auto": auto_data,
+            "establecimiento": establecimiento_data,
+            "scoreburo": scoreburo_data
+        }
+    )
+    
+    base_score += metrics["Confidence Score"]
 
     score = min(base_score, 100)
-    if score >= 85:
-        tier = TierEnum.PLATINO
-    elif score >= 70:
-        tier = TierEnum.ORO
-    elif score >= 1:
-        tier = TierEnum.PLATA
-    else:
-        tier = TierEnum.NA
+    tier = determine_tier(score)
+    
     return score, tier

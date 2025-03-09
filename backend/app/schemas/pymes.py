@@ -11,21 +11,22 @@ class LoginResponse(BaseModel):
     pyme_name: str
     trust_score: int
     tier: str
-    token: Optional[str] = "mock-token"  # Just a placeholder
+    token: Optional[str]
 
 class UserProfile(BaseModel):
     ruc: str
     pyme_name: str
     trust_score: int
-    tier: int
+    tier: str
+    financial_metrics: Optional[dict]
 
 class DashboardData(BaseModel):
     trust_score: int
-    tier: int
+    tier: str
     recent_activity: list
     certifications_completed: int
     certifications_pending: int
-    # Add whatever else your front-end needs
+    financial_summary: dict
 
 class BankPortalData(BaseModel):
     welcome_message: str
@@ -47,15 +48,27 @@ class ConfidenceDetail(BaseModel):
 
 class ConfidenceResponse(BaseModel):
     total_score: float
-    tier: int
+    tier: str
     breakdown: list[ConfidenceDetail]
 
 class NetworkRecommendation(BaseModel):
     ruc: str
     pyme_name: str
     trust_score: int
-    tier: int
+    tier: str
     compatibility_score: float
 
 class NetworkResponse(BaseModel):
     recommendations: list[NetworkRecommendation]
+
+class PymeView(BaseModel):
+    ruc: str
+    pyme_name: str
+    sector: str
+    location: str
+    peer_review: int
+    connected: bool
+    pending: bool
+
+class PeerReviewCreate(BaseModel):
+    peer_trust_score: int
