@@ -7,7 +7,7 @@ WORKDIR /app
 # Install Poetry
 RUN pip install poetry
 
-# Copy project files
+# Copy project files 
 COPY pyproject.toml poetry.lock ./
 
 # Install project dependencies
