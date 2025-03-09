@@ -1,38 +1,32 @@
-#app/routes/auth.py
-from app.models import pymes as models_db
-from app.schemas import pymes as models
-from fastapi import APIRouter, HTTPException, Depends
+# app/routes/auth.py
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
+from app.models import MockLogIn, PymeTrust
+from app.schemas import LoginRequest, LoginResponse, UserProfile
 
 router = APIRouter()
 
-@router.post("/login", response_model=models.LoginResponse)
-def login(login_req: models.LoginRequest, db: Session = Depends(get_db)):
+@router.post("/login", response_model=LoginResponse)
+def login(login_req: LoginRequest, db: Session = Depends(get_db)):
     """
-    Mock login endpoint that verifies credentials and returns a mock token.
+    Mock login that checks the mock_log_in table for (ruc, password).
+    If valid, returns the matching pymes_trust record + mock token.
     """
-    user_login = (
-        db.query(models_db.MockLogIn)
-        .filter(
-            models_db.MockLogIn.ruc == login_req.ruc,
-            models_db.MockLogIn.password == login_req.password
-        )
-        .first()
-    )
+    user_login = db.query(MockLogIn).filter(
+        MockLogIn.ruc == login_req.ruc,
+        MockLogIn.password == login_req.password
+    ).first()
     if not user_login:
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    user_profile = (
-        db.query(models_db.PymeTrust)
-        .filter(models_db.PymeTrust.ruc == login_req.ruc)
-        .first()
-    )
+    # Retrieve the user's pyme record
+    user_profile = db.query(PymeTrust).filter(PymeTrust.ruc == login_req.ruc).first()
     if not user_profile:
         raise HTTPException(status_code=404, detail="User profile not found")
 
-    return models.LoginResponse(
+    return LoginResponse(
         ruc=user_profile.ruc,
         pyme_name=user_profile.pyme_name,
         trust_score=user_profile.trust_score,
@@ -40,20 +34,35 @@ def login(login_req: models.LoginRequest, db: Session = Depends(get_db)):
         token="mock-token"
     )
 
-@router.get("/profile/{ruc}", response_model=models.UserProfile)
+@router.get("/logout")
+def logout():
+    """
+    Mock logout endpoint. In a real scenario, you'd revoke JWT or session.
+    """
+    return {"message": "Logged out successfully"}
+
+@router.get("/me")
+def get_current_user():
+    """
+    Example endpoint to get current user details if using a token-based approach.
+    For the MVP, you can mock this or return static data.
+    """
+    return {"message": "Your user info goes here (mocked)."}
+
+@router.get("/profile/{ruc}", response_model=UserProfile)
 def get_profile(ruc: str, db: Session = Depends(get_db)):
     """
     Retrieve the user's pymes_trust record.
     """
     user_profile = (
-        db.query(models_db.PymeTrust)
-        .filter(models_db.PymeTrust.ruc == ruc)
+        db.query(PymeTrust)
+        .filter(PymeTrust.ruc == ruc)
         .first()
     )
     if not user_profile:
         raise HTTPException(status_code=404, detail="User profile not found")
 
-    return models.UserProfile(
+    return UserProfile(
         ruc=user_profile.ruc,
         pyme_name=user_profile.pyme_name,
         trust_score=user_profile.trust_score,

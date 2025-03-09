@@ -1,0 +1,119 @@
+
+.container-fluid{
+    width: 100vw !important;
+    height: 100vh !important;
+}
+
+h3{
+    color: var(--titles-color) !important;
+    font-weight: 700;
+}
+
+.container-info{
+    background-color: var(--secondary-alt-color);
+    justify-content: center;
+    align-items: center;
+    height: auto;
+    width: 90vw !important;
+}
+
+.container-img{
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.container-img>img{
+    width: 400px !important;
+}
+
+.container-box{
+    display: flex;
+    justify-content: center;
+}
+
+.container-box>.box{
+    height: auto;
+    background-color: var(--white);
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    align-items: center;
+    justify-content: center;
+    padding: 25px 60px;
+    background-color: var(--white-color);
+    width: 500px;  
+}
+
+.no-account>p{
+    font-size: 14px !important;
+}
+
+.terms-and-conditions>span{
+    color: var(--gray-dark-color);
+    font-size: 12px;
+}
+
+.terms,.politics{
+    cursor: pointer !important;
+}
+
+.terms:hover,
+.politics:hover{
+    color: var(--fonts-primary-color) !important;
+}
+
+.input-group-text>fa-icon{
+    color: var(--fonts-primary-color);
+}
+
+.input-group-text>fa-icon:hover{
+    cursor: pointer;
+}
+
+.input-group>span{
+    background-color: var(--bg-inputs);
+}
+
+#container-icon-view-password{
+    margin-left: 5px !important;
+    border-radius: 8px;
+}
+
+.input-group button {
+    border: none;
+    background: none;
+    cursor: pointer;
+  }
+  
+
+/*------------------------------Responsive web design------------------------------*/
+/*------------------------------For Tablets and iPads------------------------------*/
+@media only screen and (max-width: 1024px) {
+    .container-img>img{
+        width: 300px !important;
+        margin-left: 0px !important;
+    }
+}
+
+/*-----------------------------------Smarthphone-----------------------------------*/
+@media only screen and (max-width: 768px) {
+    .container-img>img{
+        margin-top: 0% !important;
+        width: 200px !important;
+        margin-left: 0px !important;
+    }
+
+    .container-info{
+        padding: 0px;
+        height: auto !important;
+    }
+
+    .container-box>.box{
+        padding: 25px 20px;
+        margin-top: 15px;
+    }
+
+    .validators>small{
+        font-size: 12px !important;
+    }
+}

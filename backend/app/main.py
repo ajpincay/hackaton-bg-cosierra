@@ -11,7 +11,7 @@ from app.core.db import engine
 from app.models import Base
 
 # Import routers from the routes folder
-from app.routes import auth, category
+from app.routes import auth, category, external_data
 
 # Create the database tables if they don't already exist
 #Base.metadata.create_all(bind=engine)
@@ -38,6 +38,7 @@ def read_root():
 # Include the routers from separate files
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(category.router, prefix="/category", tags=["Category"])
+app.include_router(external_data.router, prefix="/external", tags=["ExternalData"])
 
 def main():
     """
