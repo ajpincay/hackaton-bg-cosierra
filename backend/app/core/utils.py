@@ -14,7 +14,6 @@ def extract_json(text):
     
     # Regex pattern to extract JSON objects
     json_patterns = re.findall(r'\{.*?\}', text, re.DOTALL)
-    print(json_patterns)
     for json_str in json_patterns:
         try:
             return json.loads(json_str)
