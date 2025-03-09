@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS pymes_trust (
     ruc VARCHAR(13) NOT NULL UNIQUE,
     pyme_name VARCHAR(35) NOT NULL,
     trust_score SMALLINT NOT NULL,
-    tier ENUM( 'N/A', 'Bronce', 'Plata', 'Oro') NOT NULL
+    tier ENUM( 'N/A', 'Plata', 'Oro', 'Platino') NOT NULL
 );
 
 DROP Table IF EXISTS mock_log_in;
