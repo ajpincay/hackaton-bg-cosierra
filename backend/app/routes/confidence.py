@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.core.db import get_db
 from app.models.pymes import PymeTrust
 from app.schemas.pymes import ConfidenceResponse, ConfidenceDetail
-from app.services.external_data import AsyncExternalDataService
+from app.services.api_hack_bg import AsyncExternalDataService
 
 router = APIRouter()
 

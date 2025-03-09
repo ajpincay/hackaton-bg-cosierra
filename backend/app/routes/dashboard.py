@@ -1,6 +1,6 @@
 # routes/dashboard.py
 from app.services.bedrock import generate_financial_summary
-from app.services.external_data import AsyncExternalDataService
+from app.services.api_hack_bg import AsyncExternalDataService
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.core.db import get_db

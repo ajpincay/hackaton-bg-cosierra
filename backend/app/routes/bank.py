@@ -1,4 +1,5 @@
 # routes/bank.py
+from app.services.banco_guayaquil_credits import BancoGuayaquilService
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.core.db import get_db
@@ -32,3 +33,26 @@ def get_bank_portal(ruc: str, db: Session = Depends(get_db)):
         application_status="Pending" if pyme.trust_score < 85 else "Approved",
         secure_messages=["Interest rates updated", "Please review your monthly statement"]
     )
+
+@router.get("/list/credits", tags=["Banco Guayaquil"])
+async def get_all_credits():
+    """
+    Fetches and returns all available credit types from Banco Guayaquil.
+    """
+    try:
+        credit_types = await BancoGuayaquilService.extract_credit_types()
+        return {"available_credits": credit_types}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch credit types: {str(e)}")
+
+@router.get("/list/credits/{credit_type}", tags=["Banco Guayaquil"])
+async def get_credit_details(credit_type: str):
+    """
+    Fetches details for a specific credit type from Banco Guayaquil.
+    Example: `/credits/casafacil` for detailed "Casafácil" credit info.
+    """
+    try:
+        credit_details = await BancoGuayaquilService.get_credit_details(credit_type)
+        return credit_details
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch credit details: {str(e)}")

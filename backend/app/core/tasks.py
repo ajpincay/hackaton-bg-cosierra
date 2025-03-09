@@ -4,7 +4,7 @@ from typing import Tuple
 from app.services.bedrock import bedrock_model_adjustment
 from app.models.pymes import PymeTrust, TierEnum
 from app.core.db import get_db
-from app.services.external_data import AsyncExternalDataService
+from app.services.api_hack_bg import AsyncExternalDataService
 from app.core.sme_metrics import FinancialMetrics
 from fastapi import Depends
 from sqlalchemy.orm import Session

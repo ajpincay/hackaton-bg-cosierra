@@ -1,7 +1,7 @@
 # routes/network.py
 from app.models.pymes import PeerPymesTrustScore, PymeConnection, PymeTrust
 from app.schemas.pymes import NetworkResponse, NetworkRecommendation, PymeView, PeerReviewCreate
-from app.services.external_data import AsyncExternalDataService
+from app.services.api_hack_bg import AsyncExternalDataService
 from http.client import HTTPException
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
