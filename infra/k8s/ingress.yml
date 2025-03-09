@@ -4,9 +4,9 @@ metadata:
   name: cosierra-ingress
   annotations:
     alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-west-2:518847936203:certificate/d9670cb6-23d4-46a7-9faf-e3edaf0c7cb1
+    alb.ingress.kubernetes.io/listen-ports: [{"HTTP": 80}, {"HTTPS": 443}]
 spec:
-  ingressClassName: alb
   rules:
     - http:
         paths:
