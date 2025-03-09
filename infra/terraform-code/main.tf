@@ -96,6 +96,7 @@ resource "aws_vpc" "eks-vpc" {
   cidr_block = "10.0.0.0/16"
 
   tags = {
+    Name = "cosierra-vpc"
     Environment = var.env
     Solution    = var.solutionName
   }
@@ -104,6 +105,7 @@ resource "aws_vpc" "eks-vpc" {
 resource "aws_internet_gateway" "cosierra-igw" {
   vpc_id = aws_vpc.eks-vpc.id
   tags = {
+    Name        = "cosierra-igw"
     Environment = var.env
     Solution    = var.solutionName
   }
@@ -118,6 +120,7 @@ resource "aws_route_table" "public" {
   }
 
   tags = {
+    Name = "cosierra-public"
     Environment = var.env
     Solution    = var.solutionName
   }
@@ -128,9 +131,28 @@ resource "aws_route_table_association" "public-associantion" {
   route_table_id = aws_route_table.public.id
 }
 
-resource "aws_route_table_association" "public-associantion2" {
+resource "aws_route_table_association" "private-associantion2" {
   subnet_id      = aws_subnet.eks-subnet-b.id
   route_table_id = aws_route_table.public.id
+}
+
+resource "aws_eip" "nat-eip" {
+  vpc = true
+
+  tags = {
+    Environment = var.env
+    Solution    = var.solutionName
+  }
+}
+
+resource "aws_nat_gateway" "cosierra-nat-gw" {
+  allocation_id = aws_eip.nat-eip.id
+  subnet_id     = aws_subnet.eks-subnet-a.id
+
+  tags = {
+    Environment = var.env
+    Solution    = var.solutionName
+  }
 }
 
 resource "aws_subnet" "eks-subnet-a" {
@@ -139,6 +161,7 @@ resource "aws_subnet" "eks-subnet-a" {
   availability_zone = "us-west-2a"
 
   tags = {
+    Name = "cosierra-public"
     Environment = var.env
     Solution    = var.solutionName
   }
@@ -150,6 +173,7 @@ resource "aws_subnet" "eks-subnet-b" {
   availability_zone = "us-west-2b"
 
   tags = {
+    Name = "cosierra-private"
     Environment = var.env
     Solution    = var.solutionName
   }
