@@ -1,14 +1,14 @@
-name: Push Backend Docker image to AWS ECR Repo
+name: Push Frontend Docker image to AWS ECR Repo
 
 on:
   push:
     branches: [ "main" ]
     paths:
-      - backend/**
+      - frontend/front-pymes/src/**
   pull_request:
     branches: [ "main" ]
     paths:
-      - backend/**
+      - frontend/front-pymes/src/**
 
 jobs:
 
@@ -44,15 +44,15 @@ jobs:
       id: build-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: ${{ secrets.BACKEND_REPO_NAME }}
+        ECR_REPOSITORY: ${{ secrets.FRONTEND_REPO_NAME }}
         IMAGE_TAG: ${{ steps.get-commit-hash.outputs.commit-hash }}-${{ steps.get-timestamp.outputs.timestamp }}
-      run: docker build ./backend -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      run: docker build ./frontend/front-pymes -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
     - name: Push image to Amazon ECR
-      id: push-image
+      id: push-image 
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: ${{ secrets.BACKEND_REPO_NAME }}
+        ECR_REPOSITORY: ${{ secrets.FRONTEND_REPO_NAME }}
         IMAGE_TAG: ${{ steps.get-commit-hash.outputs.commit-hash }}-${{ steps.get-timestamp.outputs.timestamp }}
       run: docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         
