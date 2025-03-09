@@ -3,8 +3,8 @@ name: Push Backend Docker image to AWS ECR Repo
 on:
   push:
     branches: [ "main" ]
-    #paths:
-    #  - backend/**
+    paths:
+      - backend/**
   pull_request:
     branches: [ "main" ]
     paths:
@@ -31,14 +31,6 @@ jobs:
     - name: Login to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
-
-    - name: Get commit hash
-      id: get-commit-hash
-      run: echo "::set-output name=commit-hash::$(git rev-parse --short HEAD)"
-
-    - name: Get timestamp
-      id: get-timestamp
-      run: echo "::set-output name=timestamp::$(date +'%Y-%m-%d-%H-%M')"
 
     - name: calculate version
       id: calculate-version
