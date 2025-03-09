@@ -10,13 +10,13 @@ variable "env" {
 }
 
 variable "db-username" {
-  type    = string
-  default = "dbadmin"
+  type      = string
+  default   = "dbadmin"
   sensitive = true
 }
 
 variable "db-password" {
-  type    = string
-  default = "P4$$w0rD"
+  type      = string
+  default   = "P4$$w0rD"
   sensitive = true
 }
