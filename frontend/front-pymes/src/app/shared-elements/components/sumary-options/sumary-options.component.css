@@ -1,0 +1,28 @@
+.hero-icon>svg{
+    width: 18px;
+    color: var(--primary-color);
+}
+
+/*Para las cards individuales*/
+.card {
+    border-radius: 8px;
+}
+
+.progress {
+    background-color: #f1f1f1;
+    border-radius: 4px;
+}
+
+.progress-bar {
+    border-radius: 4px;
+    background-color: var(--success-color) !important;
+}
+
+/*Para los iconos de "Actividad Reciente"*/
+.hero-icon-recently-activity{
+    width: 35px;
+    color: var(--primary-color);
+    background-color: #ccc;
+    border-radius: 50%;
+    padding: 5px 8px;
+}
