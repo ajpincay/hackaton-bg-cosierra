@@ -1,5 +1,6 @@
 # schemas/pymes.py
 from pydantic import BaseModel
+from typing import Optional
 
 class LoginRequest(BaseModel):
     ruc: str
@@ -9,8 +10,8 @@ class LoginResponse(BaseModel):
     ruc: str
     pyme_name: str
     trust_score: int
-    tier: int
-    token: str
+    tier: str
+    token: Optional[str] = "mock-token"  # Just a placeholder
 
 class UserProfile(BaseModel):
     ruc: str
