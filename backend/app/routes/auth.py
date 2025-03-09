@@ -1,8 +1,8 @@
 # app/routes/auth.py
 from app.core.tasks import calculate_trust_score
 from app.models.pymes import TierEnum
-from app.services.external_data_service import AsyncExternalDataService
-from app.services.bedrock_integration import bedrock_model_adjustment, get_titan_embedding
+from app.integrations.external_data_service import AsyncExternalDataService
+from app.integrations.bedrock import bedrock_model_adjustment, get_titan_embedding
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 import asyncio
@@ -66,7 +66,7 @@ async def login(login_req: LoginRequest, db: Session = Depends(get_db)):
     )
 
     # Calculate trust score
-    trust_score, tier_str = calculate_trust_score(
+    trust_score, tier_str = await calculate_trust_score(
         login_req.ruc, persona, salario_data, supercia_data_persona, auto_data, establecimiento_data, scoreburo_data
     )
 

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from app.services.external_data_service import AsyncExternalDataService
+from app.integrations.external_data_service import AsyncExternalDataService
 from app.schemas import (
     PersonaQueryParams, AutoQueryParams, EstablecimientoQueryParams,
     SalarioQueryParams, ScoreburoQueryParams, SuperciaQueryParams

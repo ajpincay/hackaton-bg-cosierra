@@ -1,9 +1,11 @@
 # app/tasks.py
 import random
 from typing import Tuple
-from app.services.bedrock_integration import bedrock_model_adjustment
+from app.integrations.bedrock import bedrock_model_adjustment
 from app.models.pymes import PymeTrust, TierEnum
 from app.core import db
+from app.integrations.external_data_service import AsyncExternalDataService
+from app.core.sme_metrics import FinancialMetrics
 
 def determine_tier(score: int) -> TierEnum:
     """
@@ -43,7 +45,7 @@ def fetch_and_calculate_category(ruc: str) -> Tuple[int, TierEnum]:
 
     return new_trust_score, new_tier
 
-def calculate_trust_score(
+async def calculate_trust_score(
     ruc: str,
     persona: dict,
     salario_data: list,
@@ -56,14 +58,26 @@ def calculate_trust_score(
     Function that calculates a trust_score and assigns a tier.
     """
     base_score = 5
+    print("Calculating trust score for", ruc)
+    print("Persona data:", persona)
+    print("Salario data:", salario_data)
+    print("Supercia data (persona):", supercia_data_persona)
+    print("Auto data:", auto_data)
+    print("Establecimiento data:", establecimiento_data)
+    print("Scoreburo data:", scoreburo_data)
+
+    metrics = FinancialMetrics.calculate_metrics(
+        {
+            "persona": persona,
+            "salario": salario_data,
+            "supercia_persona": supercia_data_persona,
+            "auto": auto_data,
+            "establecimiento": establecimiento_data,
+            "scoreburo": scoreburo_data
+        }
+    )
     
-    # Bonus for various data availability
-    base_score += 10 if persona.get("esCliente") == 1 else 0
-    base_score += 10 if salario_data else 0
-    base_score += 10 if supercia_data_persona else 0
-    base_score += 5 if auto_data else 0
-    base_score += 5 if establecimiento_data else 0
-    base_score += 10 if scoreburo_data else 0
+    base_score += metrics["Confidence Score"]
 
     score = min(base_score, 100)
     tier = determine_tier(score)
