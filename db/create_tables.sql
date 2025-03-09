@@ -11,10 +11,8 @@ DROP Table IF EXISTS pymes_trust;
 CREATE TABLE IF NOT EXISTS pymes_trust (
     id INT AUTO_INCREMENT PRIMARY KEY,
     ruc VARCHAR(13) NOT NULL UNIQUE,
-    pyme_name VARCHAR(250) NOT NULL, -- ToDo - delete this ?
     pyme_name VARCHAR(250) NOT NULL,
     trust_score TINYINT  DEFAULT 0,
-    tier ENUM( 'N/A', 'Plata', 'Oro', 'Platino') DEFAULT 'N/A'
     tier ENUM( 'N/A', 'Plata', 'Oro', 'Platino') DEFAULT 'N/A',
     next_tier TINYINT  DEFAULT 0
 );
@@ -37,15 +35,11 @@ CREATE TABLE IF NOT EXISTS mock_pymes (
     size ENUM('Mediana', 'Pequeña')
 );
 
--- pymes_certificates table has goals progress of each PyME
 -- pymes_certificates table - a pyme can have many certificates
 DROP Table IF EXISTS pymes_certificates;
 CREATE TABLE IF NOT EXISTS pymes_certificates (
     id INT AUTO_INCREMENT PRIMARY KEY,
     ruc VARCHAR(13) NOT NULL UNIQUE,
-    iess_compliance Boolean DEFAULT FALSE,
-    sri_compliance Boolean DEFAULT FALSE,
-    credit_score TINYINT DEFAULT 0,
     next_tier TINYINT  DEFAULT 0,
     certificate_name VARCHAR(250) NOT NULL,
     issuer VARCHAR(250) NOT NULL,
@@ -59,7 +53,6 @@ CREATE TABLE IF NOT EXISTS peer_pymes_trust_scores (
     id INT AUTO_INCREMENT PRIMARY KEY,
     score_issuer VARCHAR(13) NOT NULL UNIQUE,
     score_receiver VARCHAR(13) DEFAULT FALSE,
-    peer_trust_score TINYINT DEFAULT 0,
     peer_trust_score TINYINT DEFAULT 0
 );
 
