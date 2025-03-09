@@ -1,1 +1,92 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+    --primary-color: #bc157c;
+    --secondary-color: #ED99C5;
+
+    
+    --danger-color: #DA4F49;
+    --danger-alt-color: #FF625A;
+
+
+    --info-color: #3A87AD;
+    --info-alt-color: #2a6a8a;
+
+    --titles-color: #0a0363;
+
+
+    --text-primary-color: #303030;
+    --white-color: #FFF;
+    
+    --gray-dark-color: #888888;
+    --gray-ligth-one-color: #AFAFAF;
+    --gray-ligth-two-color: #BABABA;
+    --gray-ligth-three-color: #CCCCCC;
+    --gray-ligth-four-color: #D9D9D9;
+    --gray-ligth-five-color: #F2F2F2;
+
+    --main-font-family: "Varela Round", sans-serif;
+}
+
+* {
+    font-family: var(--main-font-family);
+    font-weight: 400;
+    font-style: normal;
+}
+
+/* ---------------- Styles for buttons ---------------- */
+.btn-primary {
+    background-color: var(--primary-color) !important;
+    color: var(--white-color) !important;
+    border-color: var(--primary-color) !important;
+    padding: 8px 20px !important;
+    border-radius: 10px !important;
+    cursor: pointer !important;
+    font-size: 13px !important;
+    text-transform: uppercase !important;
+    font-weight: bolder !important;
+}
+
+.btn-primary:hover {
+    transform: scale(1.05); 
+    transition: transform 0.3s ease-in-out;
+}
+
+.btn-outline-primary {
+    background-color: var(--white-color) !important;
+    color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    padding: 5px 20px !important;
+    border-radius: 10px !important;
+    cursor: pointer !important;
+    font-size: 13px !important;
+    text-transform: uppercase !important;
+    font-weight: bolder !important;
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--secondary-color) !important;
+    color: var(--white-color) !important;
+    border-color: var(--secondary-color) !important;
+}
+
+
+/* ---------------- Styles for inputs ---------------- */
+.form-control-sm {
+    border-radius: 8px !important;
+    padding: 6px 10px !important;
+    font-size: 10px !important;
+    background-color: var(--bg-inputs) !important;
+    color: var(--text-primary-color) !important;
+}
+
+
+/* ---------------- Styles for links ---------------- */
+.link {
+    color: var(--info-color) !important;
+    cursor: pointer !important;
+}
+
+.link:hover {
+    color: var(--info-alt-color) !important;
+    text-decoration: underline !important;
+    cursor: pointer !important;
+}

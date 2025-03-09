@@ -1,0 +1,51 @@
+#spinner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.589);
+}
+
+.code-loader {
+    color: var(--static-white-color);
+    font-weight: bolder;
+    font-size: 120px;
+}
+
+.code-loader span {
+    display: inline-block;
+    animation: pulse_414 0.4s alternate infinite ease-in-out;
+}
+
+.code-loader span:nth-child(odd) {
+    animation-delay: 0.4s;
+}
+
+@keyframes pulse_414 {
+    to {
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+}
+
+/*------------------------------Responsive web design------------------------------*/
+/*------------------------------For Tablets and iPads------------------------------*/
+@media only screen and (max-width: 1024px) {
+    .code-loader {
+        font-size: 90px;
+    }
+
+}
+
+/*------------------------------For Tablets and iPads------------------------------*/
+@media only screen and (max-width: 768px) {
+    .code-loader {
+        font-size: 65px;
+    }
+
+}

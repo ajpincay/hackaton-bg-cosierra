@@ -1,0 +1,59 @@
+@if(spinnerStatus){
+    <app-spinner></app-spinner>
+}
+
+<body>
+    <div class="container-fluid d-flex align-items-center justify-content-center">
+        <div class="row container-info">
+
+            <div class="col-12 col-sm-12 col-md-12 col-lg-5 col-xl-5 container-img" data-aos-duration="1000" data-aos="fade-down">
+                <img src="https://ccelrecreo.com/wp-content/uploads/2024/07/Banco-de-Guayaquil-El-Recreo.png" alt="Portada-login">
+            </div>
+
+            <div class="col-12 col-sm-12 col-md-12 col-lg-7 col-xl-7 container-box">
+                <div class="box" data-aos="flip-left">
+                    <h3 class="text-center mb-5">Inicia sesión</h3>
+                    <form [formGroup]="loginForm" (ngSubmit)="loginUser()">
+
+                        <!--User-->
+                        <div class="mb-3">
+                            <label class="mb-1"><b>Usuario</b></label>
+                            <input type="email" class="form-control form-control-sm bg-light fs-6"
+                                formControlName="email" placeholder="Usuario*" [maxlength]="50">
+                        </div>
+
+                        <!--Password-->
+                        <div class="mb-5">
+                            <label class="mb-1"><b>Contraseña</b></label>
+                            <input type="password"
+                                    class="form-control form-control-sm bg-light fs-6" formControlName="password"
+                                    placeholder="Contraseña*" [maxlength]="20">
+                        </div>
+
+                        <!--Log In button-->
+                        <div class="content-buttons">
+                            <button type="submit" class="mb-3 btn btn-sm btn-primary w-100">Iniciar sesión</button>
+                        </div>
+
+                        <!--Sign Up button-->
+                        <div class="no-account">
+                            <p class="mt-4 text-center">¿No tienes una cuenta? <a class="link"> Regístrate ahora</a></p>
+                        </div>
+
+                        <!--Recovery Password-->
+                        <div class="no-account">
+                            <p class="text-center"> <a class="link">Olvidé mi contraseña</a></p>
+                        </div>
+
+                        <!--Terms and Conditions-->
+                        <div class="row text-center mt-5 terms-and-conditions">
+                            <span>Al registrarte, aceptas nuestros <b class="terms">Términos y
+                                    Condiciones</b> y
+                                también la <b class="politics">Política de Privacidad</b></span>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
