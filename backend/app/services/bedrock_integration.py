@@ -1,4 +1,5 @@
 from typing import Dict
+from app.core.utils import extract_json
 import boto3
 import json
 from ratelimit import limits, sleep_and_retry
@@ -10,7 +11,12 @@ INFERENCE_PROFILE_ARN = "arn:aws:bedrock:us-west-2:518847936203:inference-profil
 
 @sleep_and_retry
 @limits(calls=1, period=1)
-def generative_model(prompt: str, system_instructions: list = None, messages: list = None, inference_params: dict = None) -> str:
+def generative_model(
+    prompt: str, 
+    system_instructions: list = None, 
+    messages: list = None, 
+    inference_params: dict = None
+) -> str:
     """
     Calls an AWS Bedrock generative AI model with a customizable prompt, system instructions, and inference parameters.
 
@@ -24,19 +30,21 @@ def generative_model(prompt: str, system_instructions: list = None, messages: li
         str: Model's generated response.
     """
 
-    # Default system instructions if none are provided
-    if system_instructions is None:
-        system_instructions = [{"text": "You are an advanced AI assistant that helps with text generation."}]
+    # Assign default values if not provided
+    system_instructions = system_instructions or [
+        {"text": "You are an advanced AI assistant that helps with text generation."}
+    ]
+    
+    messages = messages or [{"role": "user", "content": [{"text": prompt}]}]
+    
+    inference_params = inference_params or {
+        "maxTokens": 100, 
+        "temperature": 0.7, 
+        "topP": 0.9, 
+        "topK": 40
+    }
 
-    # Default user messages if none are provided
-    if messages is None:
-        messages = [{"role": "user", "content": [{"text": prompt}]}]
-
-    # Default inference parameters if not provided
-    if inference_params is None:
-        inference_params = {"maxTokens": 200, "temperature": 0.7, "topP": 0.9, "topK": 40}
-
-    # Construct the request body
+    # Construct request payload
     request_body = {
         "schemaVersion": "messages-v1",
         "messages": messages,
@@ -45,90 +53,91 @@ def generative_model(prompt: str, system_instructions: list = None, messages: li
     }
 
     try:
-        # Invoke the model
+        # Invoke AWS Bedrock model
+        bedrock = boto3.client("bedrock-runtime")
         response = bedrock.invoke_model(
             modelId=INFERENCE_PROFILE_ARN,
             contentType="application/json",
             accept="application/json",
             body=json.dumps(request_body),
         )
-
-        # Parse the response
+        
+        # Parse response body
         response_body = json.loads(response["body"].read())
+        output = response_body.get("output", {})
 
-        # Extract the generated text response
-        completion = response_body.get("completion", "").strip()
+        if isinstance(output, dict):
+            output_text = output.get("message", {}).get("content", [])
+            return output_text[0].get("text", "") if output_text and isinstance(output_text[0], dict) else ""
 
-        print("\nGenerated Response:")
-        print(completion)
+        return json.loads(output) if isinstance(output, str) else ""
 
-        return completion
+    except Exception as e:
+        print(f"Error during model invocation: {e}")
+        return ""
 
     except Exception as e:
         print(f"Error calling AWS Bedrock: {e}")
-        return ""
+        return {}
 
-
-def generate_financial_summary(metrics: Dict, language: str = "spanish") -> str:
+def generate_financial_summary(metrics: Dict, language: str = "spanish") -> Dict:
     """Use Bedrock Nova-1 to generate a financial summary."""
     prompt = f"""
     Given the following financial metrics:
-    - Revenue: {metrics['ventas']}
-    - Credit Capacity: {metrics['cupo_creditos']}
-    - Probability of Default: {metrics['prob_morosidad']}
-    - Tax-to-Sales Ratio: {metrics['tax_to_sales']}
-    - Financing Ratio: {metrics['financing_ratio']}
-    - Debt-to-Income Ratio: {metrics['debt_to_income']}
-    - Trustworthiness: {metrics['confianza']}
+   {
+         json.dumps(metrics, indent=4)
+   }
 
     Provide an analysis of the financial health and creditworthiness of this SME  in {language}.
+    For the answer, respond with a structured JSON object in the format: {{"summary": "Your financial summary here", "recommendation": "Your recommendation here"}}
     """
 
-    response = generative_model(
+    response_text = generative_model(
         prompt,
-        system_instructions=[{"text": "You are a financial risk analyst."}],
+        system_instructions=[{"text": "You are a financial risk analyst That will always answer only with the given schema."}],
+        inference_params={"maxTokens": 1024, "temperature": 0.7, "topP": 0.9, "topK": 40},
     )
 
-    response_body = json.loads(response["body"].read())
-    return response_body.get("completion", "").strip()
-
+    print(f"Response from model: {response_text}")
+    try:
+        # Parse the extracted JSON
+        response_json = extract_json(response_text)
+        return response_json
+    except (ValueError, json.JSONDecodeError, TypeError) as e:
+        print(f"Invalid response received: {response_text}, Error: {e}")
+        return {}
 
 def bedrock_model_adjustment(data: dict) -> float:
     """
     Calls AWS Bedrock AI Model (Nova-Pro) for numerical score adjustments.
+    Returns the adjusted score in a structured JSON format.
     """
-
+    print("\nData for score adjustment:")
+    print(data)
+    
     # Define system instructions
     system_instructions = [
-        {"text": "You are an AI assistant that provides numerical score adjustments."}
+        {"text": f"Adjust the score for the given data: {json.dumps(data)}. Return only a JSON object in the format {{\"evaluated_score\": value}} where value is a numerical score."}
     ]
-
-    # Create message format
-    messages = [
-        {"role": "user", "content": [{"text": f"Adjust the score for: {json.dumps(data)}"}]}
-    ]
-
+    
     # Define inference parameters
-    inference_params = {"maxTokens": 100, "temperature": 0.7, "topP": 0.9, "topK": 20}
-
-    # Call the generic generative model function
+    inference_params = {"maxTokens": 50, "temperature": 0.7, "topP": 0.9, "topK": 20}
+    
+    # Call the generative model
     response_text = generative_model(
-        prompt="Adjust the score based on the given data.",
+        prompt="Adjust the score based on the given data. Answer only with the given schema.",
         system_instructions=system_instructions,
-        messages=messages,
         inference_params=inference_params,
     )
-
+    print(f"Response from model: {response_text}")
     try:
-        # Convert response to float if possible
-        score = float(response_text) if response_text.replace('.', '', 1).isdigit() else 0.0
+        # Parse the extracted JSON
+        response_json = extract_json(response_text)
+        score = float(response_json.get("evaluated_score", 0.0))
         return score
-
-    except ValueError:
-        print(f"Invalid response received: {response_text}")
+    except (ValueError, json.JSONDecodeError, TypeError) as e:
+        print(f"Invalid response received: {response_text}, Error: {e}")
         return 0.0
-    
-
 
 @sleep_and_retry
 @limits(calls=1, period=1)  # Allow 1 call per second
@@ -137,11 +146,11 @@ def get_titan_embedding(text: str) -> list:
     
     try:
         # Correct request format
-        request_body = {"inputText": text}  # Use 'inputText' instead of 'text'
+        request_body = {"inputText": text}
         
         # Invoke the model
         response = bedrock.invoke_model(
-            modelId="amazon.titan-embed-text-v2:0",  # Correct model ID
+            modelId="amazon.titan-embed-text-v2:0",
             contentType="application/json",
             accept="application/json",
             body=json.dumps(request_body),

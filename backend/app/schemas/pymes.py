@@ -11,7 +11,7 @@ class LoginResponse(BaseModel):
     pyme_name: str
     trust_score: int
     tier: str
-    token: Optional[str] = "mock-token"  # Just a placeholder
+    token: Optional[str]
 
 class UserProfile(BaseModel):
     ruc: str
@@ -26,7 +26,7 @@ class DashboardData(BaseModel):
     recent_activity: list
     certifications_completed: int
     certifications_pending: int
-    # Add whatever else your front-end needs
+    financial_summary: dict
 
 class BankPortalData(BaseModel):
     welcome_message: str
