@@ -8,6 +8,9 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
             - name: Configure AWS credentials
               uses: aws-actions/configure-aws-credentials@v4
               with:
@@ -21,5 +24,5 @@ jobs:
 
             - name: Deploy to EKS
               run: |
-                kubectl apply -f ./infra/k8s/deployment.yml
-                kubectl apply -f ./infra/k8s/service.yml 
+                kubectl apply -f infra/k8s/deployment.yml
+                kubectl apply -f infra/k8s/service.yml 
