@@ -38,6 +38,7 @@ resource "aws_db_instance" "db-cosierra" {
   db_name              = "cosierraDb"
   engine               = "mysql"
   engine_version       = "8.0"
+  identifier           = "cosierra-db"
   instance_class       = "db.m5.large"
   username             = "${var.db-username}"
   password             = "${var.db-password}"
@@ -51,8 +52,22 @@ resource "aws_db_instance" "db-cosierra" {
 }
 
 # Container Registry
-resource "aws_ecr_repository" "cosierra-ecr" {
-  name                 = "ecr-cosierra"
+resource "aws_ecr_repository" "cosierra-ecr-backend" {
+  name                 = "ecr-cosierra-backend"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  tags = {
+    Environment = var.env
+    Solution    = var.solutionName
+  }
+}
+
+resource "aws_ecr_repository" "cosierra-ecr-frontend" {
+  name                 = "ecr-cosierra-frontend"
   image_tag_mutability = "MUTABLE"
 
   image_scanning_configuration {
