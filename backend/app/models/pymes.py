@@ -1,6 +1,6 @@
 # models/pymes.py
 import enum
-from sqlalchemy import Column, Integer, String, SmallInteger, Enum, Boolean, UniqueConstraint, DateTime, func, Float
+from sqlalchemy import Column, Integer, String, SmallInteger, Enum, Boolean, UniqueConstraint, DateTime, func, Float, Date
 from app.models.base import Base
 
 class TierEnum(enum.Enum):
@@ -30,12 +30,14 @@ class MockLogIn(Base):
 
 class PymeCertifications(Base):
     __tablename__ = "pymes_certificates"
+
     id = Column(Integer, primary_key=True, autoincrement=True)
-    ruc = Column(String(13), unique=True, nullable=False)
-    iess_compliance = Column(Boolean, nullable=False, default=False)
-    sri_compliance = Column(Boolean, nullable=False, default=False)
-    credit_score = Column(SmallInteger, nullable=False, default=0)
-    next_tier = Column(SmallInteger, nullable=False, default=0)
+    ruc = Column(String(13), nullable=False)
+    certificate_name = Column(String(250), nullable=False)
+    issuer = Column(String(250), nullable=False)
+    issue_date = Column(Date, nullable=True)
+    expiration_date = Column(Date, nullable=True)
+
 
 class PeerPymesTrustScore(Base):
     __tablename__ = "peer_pymes_trust_scores"
