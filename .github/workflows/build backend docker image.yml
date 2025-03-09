@@ -3,12 +3,12 @@ name: Push Backend Docker image to AWS ECR Repo
 on:
   push:
     branches: [ "main" ]
-    #paths:
-    #  - backend/**
+    paths:
+      - backend/**
   pull_request:
     branches: [ "main" ]
-    #paths:
-    #  - backend/**
+    paths:
+      - backend/**
 
 jobs:
 
