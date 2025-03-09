@@ -21,4 +21,4 @@ jobs:
       uses: actions/checkout@v4
       
     - name: Build Backend Docker image
-      run: docker build ./backend --file Dockerfile --tag cosierra/backend:$(date +%s)
+      run: docker build ./backend -t cosierra/backend:$(date +%s)
