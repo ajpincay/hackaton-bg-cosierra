@@ -57,4 +57,3 @@ For a complete list of available API endpoints and their details, visit the inte
 - {{api_url}}/docs # Production
 
 This documentation provides an overview of all endpoints, their request/response formats, and allows you to test API calls directly from the browser.
-
