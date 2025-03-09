@@ -1,10 +1,11 @@
 # app/routes/auth.py
 from app.core.tasks import calculate_trust_score
 from app.models.pymes import TierEnum
-from app.services.external_data_service import ExternalDataService
-from app.services.bedrock_integration import bedrock_model_adjustment
+from app.services.external_data_service import AsyncExternalDataService
+from app.services.bedrock_integration import bedrock_model_adjustment, get_titan_embedding
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+import asyncio
 
 from app.core.db import get_db
 from app.models import MockLogIn, PymeTrust
@@ -14,70 +15,74 @@ router = APIRouter()
 
 
 @router.post("/login", response_model=LoginResponse)
-def login(login_req: LoginRequest, db: Session = Depends(get_db)):
+async def login(login_req: LoginRequest, db: Session = Depends(get_db)):
     """
-    Mock login endpoint that calculates trust score and tier for a PYME.
-    For demonstration, we'll use external data to calculate the trust score.
+    Async login endpoint that calculates trust score and tier for a PYME.
+    Uses external async API calls for trust score computation.
     """
-    # Step 1: Query the persona endpoint using cedula = login_req.ruc
-    persona_data = ExternalDataService.get_persona({"cedula": login_req.ruc})
-    if not persona_data or len(persona_data) == 0:
+
+    # Step 1: Fetch all required external data asynchronously
+    persona_data = await AsyncExternalDataService.get_persona({"cedula": login_req.ruc})
+    if not persona_data:
         raise HTTPException(status_code=404, detail="No user found in persona")
+
     persona = persona_data[0]
     if persona.get("esCliente") != 1:
         raise HTTPException(status_code=404, detail="User is not a client")
 
-    # Step 2: Query salario and supercia for the cedula
-    salario_data = ExternalDataService.get_salario({"cedula": login_req.ruc})
-    supercia_data_persona = ExternalDataService.get_supercia({"cedula": login_req.ruc})
-    in_salario = salario_data is not None and len(salario_data) > 0
-    in_supercia = supercia_data_persona is not None and len(supercia_data_persona) > 0
+    # Step 2: Fetch multiple datasets in parallel
+    salario_data, supercia_data_persona = await asyncio.gather(
+        AsyncExternalDataService.get_salario({"cedula": login_req.ruc}),
+        AsyncExternalDataService.get_supercia({"cedula": login_req.ruc})
+    )
 
-    # Step 3: Check for special case using salario's rucEmpresa in supercia
+    in_salario = bool(salario_data)
+    in_supercia = bool(supercia_data_persona)
+
+    # Step 3: Special case check: if salario's rucEmpresa exists in supercia
     special_case = False
     special_ruc = None
     special_nombreEmpresa = None
+
     if in_salario:
         for rec in salario_data:
-            supercia_data_empresa = ExternalDataService.get_supercia({"cedula": rec.get("rucEmpresa")})
-            if supercia_data_empresa and len(supercia_data_empresa) > 0:
+            supercia_data_empresa = await AsyncExternalDataService.get_supercia({"cedula": rec.get("rucEmpresa")})
+            if supercia_data_empresa:
                 special_case = True
                 special_ruc = rec.get("rucEmpresa")
                 special_nombreEmpresa = rec.get("nombreEmpresa")
                 break
 
-    # Step 4: Determine final pymes_trust values
-    if special_case:
-        final_ruc = special_ruc
-        final_pyme_name = special_nombreEmpresa[:35]
-    else:
-        final_ruc = login_req.ruc  # use the cedula
-        constructed_name = f"{persona.get('nombres','')}_{persona.get('apellidos','')} S.A."
-        final_pyme_name = constructed_name[:35]
+    # Step 4: Determine final PYME trust values
+    final_ruc = special_ruc if special_case else login_req.ruc
+    final_pyme_name = (special_nombreEmpresa[:35] if special_case 
+                       else f"{persona.get('nombres', '')}_{persona.get('apellidos', '')} S.A.")[:35]
 
-    # Step 5: Fetch additional external data for better trust score calculation
-    auto_data = ExternalDataService.get_auto({"cedula": login_req.ruc})
-    establecimiento_data = ExternalDataService.get_establecimiento({"cedula": login_req.ruc})
-    scoreburo_data = ExternalDataService.get_scoreburo({"cedula": login_req.ruc})
-    
-    # Calculate trust score and tier using external data
+    # Step 5: Fetch remaining data asynchronously
+    auto_data, establecimiento_data, scoreburo_data = await asyncio.gather(
+        AsyncExternalDataService.get_auto({"cedula": login_req.ruc}),
+        AsyncExternalDataService.get_establecimiento({"cedula": login_req.ruc}),
+        AsyncExternalDataService.get_scoreburo({"cedula": login_req.ruc})
+    )
+
+    # Calculate trust score
     trust_score, tier_str = calculate_trust_score(
         login_req.ruc, persona, salario_data, supercia_data_persona, auto_data, establecimiento_data, scoreburo_data
     )
 
-    # Step 6: Check if the user exists in mock_log_in
+    # Step 6: Handle user authentication and database updates
     existing_login = db.query(MockLogIn).filter(MockLogIn.ruc == login_req.ruc).first()
     if not existing_login:
-        # First login: Create a new pymes_trust record and add to mock_log_in
+        # First login: Create pymes_trust record and add to mock_log_in
         new_pyme = PymeTrust(
             ruc=final_ruc,
             pyme_name=final_pyme_name,
             trust_score=trust_score,
-            tier=TierEnum(tier_str)  # Convert tier_str ("Plata", "Oro", "Platino", "N/A") to TierEnum
+            tier=TierEnum(tier_str)  # Convert tier_str to Enum
         )
         db.add(new_pyme)
-        db.flush()  # Ensure new_pyme is persisted before using it
-        
+        db.flush()  # Persist before adding login
+
         new_login = MockLogIn(
             ruc=login_req.ruc,
             password=login_req.password

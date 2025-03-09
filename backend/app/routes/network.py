@@ -39,3 +39,6 @@ def get_recommendations(ruc: str, db: Session = Depends(get_db)):
     # Sort by highest compatibility first
     recommendations.sort(key=lambda x: x.compatibility_score, reverse=True)
     return NetworkResponse(recommendations=recommendations)
+
+
+# endpoint to score a pyme, this will update the trust score by 1 - 10 points

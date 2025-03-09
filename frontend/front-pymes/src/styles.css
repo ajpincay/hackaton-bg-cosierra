@@ -2,11 +2,16 @@
     --primary-color: #bc157c;
     --secondary-color: #ED99C5;
 
+
+    --third-color: #DBA112;
+    --third-alt-color: #fcda83;
+
     
     --danger-color: #DA4F49;
     --danger-alt-color: #FF625A;
 
     --success-color: #4CAF50;
+
 
 
     --info-color: #3A87AD;
@@ -44,7 +49,6 @@
     border-radius: 10px !important;
     cursor: pointer !important;
     font-size: 13px !important;
-    text-transform: uppercase !important;
     font-weight: bolder !important;
 }
 
@@ -52,6 +56,19 @@
     transform: scale(1.05); 
     transition: transform 0.3s ease-in-out;
 }
+
+
+
+.btn-secondary{
+    padding: 8px 20px !important;
+    border-radius: 10px !important;
+    cursor: pointer !important;
+    font-size: 13px !important;
+    font-weight: bolder !important;
+}
+
+
+
 
 .btn-outline-primary {
     background-color: var(--white-color) !important;
@@ -127,3 +144,10 @@
 }
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+
+/*Para las barras de progreso*/
+.progress-bar {
+    border-radius: 4px;
+    background-color: var(--success-color) !important;
+}

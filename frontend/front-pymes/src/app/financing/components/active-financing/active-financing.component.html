@@ -1,0 +1,56 @@
+<div class="row mx-1 mt-3">
+    @for(financing of arrayActivesFinancing; track $index){
+        <div class="card shadow-sm h-100 d-flex flex-column mb-3">
+            <div class="card-body">
+                
+                <!-- Tipo de financiamiento y Descripción -->
+                <div class="row d-flex justify-content-between align-items-center">
+                    <div class="col">
+                        <div class="d-flex align-items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6" width="24px">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
+                            </svg>                                                  
+                            <h5 class="mb-0 ms-2"><b>{{financing.typeFinancing}}</b></h5>
+                        </div>
+                    
+                        <!--Descripción-->
+                        <div class="row mt-2">
+                            <p>{{financing.shortDescription}}</p>
+                        </div>     
+                    </div>
+
+                    <div class="col d-flex justify-content-end text-center info">
+                        <div class="info mx-2">
+                            <p class="mb-0 text-muted">Monto original</p>
+                            <p class="mb-0 text-muted">${{financing.originalAamount}}</p>
+                        </div>
+                        <div class="info mx-2">
+                            <p class="mb-0 text-muted">Saldo actual</p>
+                            <p class="mb-0 text-muted">${{financing.amountPaid}}</p>
+                        </div>
+                        <div class="info mx-2">
+                            <p class="mb-0 text-muted">Próximo pago</p>
+                            <p class="mb-0 text-muted">{{financing.nextPayment}}</p>
+                        </div>
+                        <div class="info mx-2">
+                            <p class="mb-0 text-muted">Estado</p>
+                            <p class="mb-0 status">{{financing.status}}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Barra de progreso -->
+                <div class="col">
+                    <p class="mt-2 mb-0">Progreso de pago</p>
+                    <div class="progress mt-1" style="height: 8px;">
+                        <div class="progress-bar" role="progressbar"
+                            [ngStyle]="{ 'width': financing.progress + '%' }"
+                            [attr.aria-valuenow]="financing.progress"
+                            aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

@@ -1,4 +1,18 @@
-/*Para modificar el color de los tabs*/
+*{
+    font-size: 13px;
+}
+
+svg{
+    color: var(--primary-color);
+}
+
+.recommended{
+    background-color: var(--third-alt-color);
+    padding: 3px 7px;
+    border-radius: 50px;
+    font-size: 10px;
+}
+
 ::ng-deep .mat-mdc-tab.mdc-tab--active .mdc-tab__text-label {
     color: var(--primary-color) !important;
 }

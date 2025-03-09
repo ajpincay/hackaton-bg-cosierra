@@ -1,0 +1,11 @@
+.info{
+    font-size: 13px;
+}
+
+.status{
+    color: var(--success-color);
+}
+
+svg{
+    color: var(--primary-color);
+}
