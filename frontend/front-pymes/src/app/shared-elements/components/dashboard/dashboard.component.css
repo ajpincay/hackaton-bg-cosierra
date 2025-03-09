@@ -8,7 +8,7 @@ body {
 }
 
 .app-name-2 {
-    color: var(--third-color);
+    color: var(--text-primary-color);
 }
 
 a {
@@ -50,7 +50,6 @@ li {
     align-items: center;
     height: 64px;
     font-weight: 700;
-    color: var(--third-color);
     transition: all .3s ease;
     padding: 0 6px;
 }
@@ -90,7 +89,6 @@ li {
 
 .icon-hero-menu > svg {
     width: 20px !important;
-    color: var(--third-color);
 }
 
 #sidebar .side-menu > li > a:hover {

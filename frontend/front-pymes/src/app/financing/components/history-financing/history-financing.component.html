@@ -1,0 +1,44 @@
+<div class="row mx-1 mt-3">
+    @for(financing of arrayHistoryFinancing; track $index){
+        <div class="card shadow-sm h-100 d-flex flex-column mb-3">
+            <div class="card-body">
+                <div class="row d-flex justify-content-between align-items-center">
+                    <div class="col">
+                        <!--Nombre del financiamiento-->
+                        <div class="d-flex align-items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6" width="24px">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941" />
+                            </svg>                                                                                
+                            <h5 class="mb-0 ms-2"><b>{{financing.typeFinancing}}</b></h5>
+                        </div>
+                    
+                        <!--Descripción del financiamiento-->
+                        <div class="row mt-2">
+                            <p>{{financing.shortDescription}}</p>
+                        </div>     
+                    </div>
+
+                    <!-- Información detallada del financiamiento -->
+                    <div class="col d-flex justify-content-end text-center info">
+                        <div class="info mx-2">
+                            <p class="mb-0 text-muted">Monto original</p>
+                            <p class="mb-0 text-muted">${{financing.originalAamount}}</p>
+                        </div>
+                        <div class="info mx-2">
+                            <p class="mb-0 text-muted">Plazo</p>
+                            <p class="mb-0 text-muted">{{financing.termInMonths}} Meses</p>
+                        </div>
+                        <div class="info mx-2">
+                            <p class="mb-0 text-muted">Fecha de cierre</p>
+                            <p class="mb-0 text-muted">{{financing.closingDate}}</p>
+                        </div>
+                        <div class="info mx-2">
+                            <p class="mb-0 text-muted">Estado</p>
+                            <p class="mb-0 status">{{financing.status}}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

@@ -2,11 +2,16 @@
     --primary-color: #bc157c;
     --secondary-color: #ED99C5;
 
+
+    --third-color: #DBA112;
+    --third-alt-color: #fcda83;
+
     
     --danger-color: #DA4F49;
     --danger-alt-color: #FF625A;
 
     --success-color: #4CAF50;
+
 
 
     --info-color: #3A87AD;
@@ -127,3 +132,10 @@
 }
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+
+/*Para las barras de progreso*/
+.progress-bar {
+    border-radius: 4px;
+    background-color: var(--success-color) !important;
+}

@@ -13,11 +13,6 @@
     border-radius: 4px;
 }
 
-.progress-bar {
-    border-radius: 4px;
-    background-color: var(--success-color) !important;
-}
-
 /*Para los iconos de "Actividad Reciente"*/
 .hero-icon-recently-activity{
     width: 35px;

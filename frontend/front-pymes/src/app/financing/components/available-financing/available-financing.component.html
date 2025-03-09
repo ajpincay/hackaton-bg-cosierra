@@ -1,0 +1,51 @@
+<div class="row mx-0 d-flex mt-3">
+    @for(financing of arrayAvailableFinancing; track $index){
+        <div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4 mb-3">
+            <div class="card shadow-sm h-100 d-flex flex-column">
+                <div class="card-body">
+                    <!--Tipo de financiamiento y si es recomendada o no-->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <!-- Título a la izquierda -->
+                        <div class="d-flex align-items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6" width="20px">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" />
+                            </svg>                    
+                            <h5 class="mb-0 ms-2"><b>{{financing.typeFinancing}}</b></h5>
+                        </div>
+                    
+                        <!-- Texto a la derecha -->
+                         @if(financing.recommended){
+                             <span class="recommended fw-bold text-muted">Recomendada</span>
+                         }
+                    </div>
+                    
+                    <!--Descripción-->
+                    <div class="row mt-2">
+                        <p>{{financing.shortDescription}}</p>
+                    </div>     
+            
+                    <!--Detalles-->
+                    <div class="row mt-2">
+                        <div class="col-6">
+                            <p class="mb-1 text-muted">Monto</p>
+                            <p class="mb-1 text-muted">Tasa de interés</p>
+                            <p class="mb-1 text-muted">Plazo (Meses)</p>
+                            <p class="mb-1 text-muted">Requisitos</p>
+                        </div>
+                        <div class="col-6 text-end">
+                            <p class="mb-1 text-muted">Hasta ${{financing.maxAmount}}</p>
+                            <p class="mb-1 text-muted">{{financing.interestRate}}</p>
+                            <p class="mb-1 text-muted">{{financing.termsInMonth}}</p>
+                            <p class="mb-1 text-muted">{{financing.requeriments}}</p>
+                        </div>
+                    </div>
+
+                    <!--Botón para solicitar-->
+                    <div class="row mt-2 px-2">
+                        <button class="btn btn-outline-primary">Solicitar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
