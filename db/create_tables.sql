@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS pymes_trust (
 DROP Table IF EXISTS mock_log_in;
 CREATE TABLE IF NOT EXISTS mock_log_in (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    ruc VARCHAR(50) NOT NULL UNIQUE,
+    ruc VARCHAR(13) NOT NULL UNIQUE,
     password VARCHAR(16) NOT NULL
 #     password_hash VARCHAR(255) NOT NULL  -- Enable this when hashing algorithm is implemented
 );
