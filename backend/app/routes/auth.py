@@ -2,6 +2,7 @@
 from app.core.tasks import calculate_trust_score
 from app.models.pymes import TierEnum
 from app.services.external_data_service import ExternalDataService
+from app.services.bedrock_integration import bedrock_model_adjustment
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -15,13 +16,8 @@ router = APIRouter()
 @router.post("/login", response_model=LoginResponse)
 def login(login_req: LoginRequest, db: Session = Depends(get_db)):
     """
-    1) Accept any password (since real login is at the bank).
-    2) If user (RUC) doesn't exist in mock_log_in, it's the first login:
-       - Calculate trust_score & tier
-       - Insert into pymes_trust
-       - Insert into mock_log_in
-    3) If user exists, recalc trust_score & tier in background or on-the-fly
-    4) Return the user's data
+    Mock login endpoint that calculates trust score and tier for a PYME.
+    For demonstration, we'll use external data to calculate the trust score.
     """
     # Step 1: Query the persona endpoint using cedula = login_req.ruc
     persona_data = ExternalDataService.get_persona({"cedula": login_req.ruc})
