@@ -1,3 +1,4 @@
+# AppConfiguration
 resource "aws_appconfig_application" "ac-cosierra" {
   name        = "appConfig-cosierra"
   description = "Configuracion"
@@ -31,7 +32,7 @@ resource "aws_appconfig_hosted_configuration_version" "hc-cosierra" {
     })
 }
 
-
+# Database
 resource "aws_db_instance" "db-cosierra" {
   allocated_storage    = 10
   db_name              = "cosierraDb"
@@ -49,7 +50,7 @@ resource "aws_db_instance" "db-cosierra" {
   }
 }
 
-
+# Container Registry
 resource "aws_ecr_repository" "cosierra-ecr" {
   name                 = "ecr-cosierra"
   image_tag_mutability = "MUTABLE"
@@ -64,7 +65,18 @@ resource "aws_ecr_repository" "cosierra-ecr" {
   }
 }
 
+# CloudWatch Log Group
+resource "aws_cloudwatch_log_group" "cw-logs-cosierra" {
+  name = "cosierra-logs"
+  retention_in_days = 7
 
+  tags = {
+    Environment = var.env
+    Solution    = var.solutionName
+  }
+}
+
+# Resource Group
 resource "aws_resourcegroups_group" "cosierra-prod-rg" {
   name = "cosierra-prod-rg"
 
@@ -79,7 +91,8 @@ resource "aws_resourcegroups_group" "cosierra-prod-rg" {
       "ResourceTypeFilters": [
         "AWS::ECR::Repository",
         "AWS::AppConfig::ConfigurationProfile",
-        "AWS::RDS::DBInstance"
+        "AWS::RDS::DBInstance",
+        "AWS::Logs::LogGroup"
       ],
       "TagFilters": [
         {
