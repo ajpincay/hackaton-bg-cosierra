@@ -1,39 +1,36 @@
-# app/routes/dashboard.py
-from fastapi import APIRouter, Depends
+# routes/dashboard.py
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.core.db import get_db
-from app.models.base import PymeTrust
+from app.models import PymeTrust
+from app.schemas import DashboardData
 
-router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
+router = APIRouter()
 
-@router.get("/")
+@router.get("/{ruc}", response_model=DashboardData)
 def get_dashboard(ruc: str, db: Session = Depends(get_db)):
     """
-    Returns summary data for the user's dashboard:
-      - Current trust level
-      - Certifications completed
-      - References
-      - Activity log
-      - Confidence evolution
+    Returns the data needed to render the Trusted Network Dashboard:
+      - Current trust score & tier
+      - Mock confidence evolution
+      - Recent activity feed
+      - Certifications summary
+      - Quick links (front-end can handle the actual links)
     """
     pyme = db.query(PymeTrust).filter(PymeTrust.ruc == ruc).first()
     if not pyme:
-        return {
-            "nivelConfianza": 0,
-            "certificaciones": {"completadas": 0, "totales": 0},
-            "referencias": 0,
-            "actividadReciente": [],
-            "graficoEvolucion": [],
-        }
+        raise HTTPException(status_code=404, detail="PYME not found")
 
-    return {
-        "nivelConfianza": pyme.trust_score,  # e.g. 75
-        "certificaciones": {"completadas": 3, "totales": 5},  # mocked
-        "referencias": 12,  # mocked
-        "actividadReciente": [
-            "Distribuidora Nacional S.A. te calificó",
-            "Certificación Fiscal completada",
-            "Financiera Progreso te otorgó un crédito",
-        ],
-        "graficoEvolucion": [60, 68, 75],  # mocked historical scores
-    }
+    # In a real scenario, you might store 'recent activity' or 'certifications'
+    # in separate tables. Here, we'll just mock them:
+    mock_recent_activity = [
+        "New connection request from 'Financiera Progreso'",
+        "You completed 'Financial Certification' successfully"
+    ]
+    return DashboardData(
+        trust_score=pyme.trust_score,
+        tier=pyme.tier,
+        recent_activity=mock_recent_activity,
+        certifications_completed=1,
+        certifications_pending=2
+    )

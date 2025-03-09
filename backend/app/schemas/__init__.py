@@ -3,6 +3,14 @@ from .pymes import (
     LoginRequest,
     LoginResponse,
     UserProfile,
+    DashboardData,
+    BankPortalData,
+    CertificationData,
+    CertificationsResponse,
+    ConfidenceDetail,
+    ConfidenceResponse,
+    NetworkRecommendation,
+    NetworkResponse,
 )
 
 from .external_data import (
@@ -24,4 +32,12 @@ __all__ = [
     "SalarioQueryParams",
     "ScoreburoQueryParams",
     "SuperciaQueryParams",
+    "DashboardData",
+    "BankPortalData",
+    "CertificationData",
+    "CertificationsResponse",
+    "ConfidenceDetail",
+    "ConfidenceResponse",
+    "NetworkRecommendation",
+    "NetworkResponse",
 ]
