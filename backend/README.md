@@ -74,3 +74,5 @@ Below is a brief overview of the primary endpoints in this application. Adjust t
 
 4. POST /category/recalculate/{ruc}  
    » Triggers a background task to recalculate a user's trust score and tier based on simulated data and an AI-based adjustment (Bedrock integration).
+
+.
