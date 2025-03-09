@@ -52,22 +52,8 @@ resource "aws_db_instance" "db-cosierra" {
 }
 
 # Container Registry
-resource "aws_ecr_repository" "cosierra-ecr-backend" {
-  name                 = "ecr-cosierra-backend"
-  image_tag_mutability = "MUTABLE"
-
-  image_scanning_configuration {
-    scan_on_push = true
-  }
-
-  tags = {
-    Environment = var.env
-    Solution    = var.solutionName
-  }
-}
-
-resource "aws_ecr_repository" "cosierra-ecr-frontend" {
-  name                 = "ecr-cosierra-frontend"
+resource "aws_ecr_repository" "cosierra-ecr" {
+  name                 = "ecr-cosierra"
   image_tag_mutability = "MUTABLE"
 
   image_scanning_configuration {
