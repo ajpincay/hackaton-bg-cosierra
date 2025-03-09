@@ -1,0 +1,25 @@
+name: Deploy to EKS
+
+on:
+    workflow_dispatch:
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                aws-region: ${{ secrets.AWS_REGION}}
+                aws-session-token: ${{ secrets.AWS_SESSION_TOKEN}}
+
+            - name: Update kubeconfig
+              run: aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }}
+
+            - name: Deploy to EKS
+              run: |
+                kubectl apply -f infra/k8s/deployment.yaml
+                kubectl apply -f infra/k8s/service.yaml 
