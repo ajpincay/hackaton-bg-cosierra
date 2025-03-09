@@ -1,6 +1,8 @@
 # app/tasks.py
 import random
+from typing import Tuple
 from app.services.bedrock_integration import bedrock_model_adjustment
+from app.models.pymes import TierEnum
 
 def fetch_and_calculate_category(ruc: str):
     """
@@ -42,3 +44,21 @@ def fetch_and_calculate_category(ruc: str):
         new_tier = 0  # Silver
 
     return new_trust_score, new_tier
+
+
+
+def calculate_trust_score(ruc: str) -> Tuple[int, str]:
+    """
+    Mock function that calculates a random trust_score and assigns a tier.
+    Tiers: 'N/A', 'Plata', 'Oro', 'Platino'
+    """
+    score = random.randint(0, 100)
+    if score >= 85:
+        tier = TierEnum.PLATINO
+    elif score >= 70:
+        tier = TierEnum.ORO
+    elif score >= 1:
+        tier = TierEnum.PLATA
+    else:
+        tier = TierEnum.NA
+    return score, tier
