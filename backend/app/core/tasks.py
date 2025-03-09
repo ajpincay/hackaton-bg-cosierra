@@ -47,12 +47,27 @@ def fetch_and_calculate_category(ruc: str):
 
 
 
-def calculate_trust_score(ruc: str) -> Tuple[int, str]:
+def calculate_trust_score(ruc, persona, salario_data, supercia_data_persona, auto_data, establecimiento_data, scoreburo_data) -> Tuple[int, str]:
     """
     Mock function that calculates a random trust_score and assigns a tier.
     Tiers: 'N/A', 'Plata', 'Oro', 'Platino'
     """
-    score = random.randint(0, 100)
+    base_score = 5
+        # Bonus for being an accepted client
+    if persona.get("esCliente") == 1:
+        base_score += 10
+    if salario_data and len(salario_data) > 0:
+        base_score += 10
+    if supercia_data_persona and len(supercia_data_persona) > 0:
+        base_score += 10
+    if auto_data and len(auto_data) > 0:
+        base_score += 5
+    if establecimiento_data and len(establecimiento_data) > 0:
+        base_score += 5
+    if scoreburo_data and len(scoreburo_data) > 0:
+        base_score += 10
+
+    score = min(base_score, 100)
     if score >= 85:
         tier = TierEnum.PLATINO
     elif score >= 70:
