@@ -45,9 +45,9 @@ export class LoginComponent {
         .subscribe({
           next: (res: ApiResponseLoginUserI) => {
             this.spinnerStatus = false;
+            sessionStorage.setItem('ruc', this.loginForm.value.ruc || "1019283518");
             if (res) {
               this.router.navigateByUrl('/pyme/dashboard');
-              console.log(res);
             }
             else{
               alert("Credenciales incorrectas");

@@ -9,7 +9,7 @@ import { environment } from '../../../environments/environment';
 })
 export class AuthenticationService {
   //Variables
-  urlApi: string = "https://s9c0tq03-8000.use2.devtunnels.ms";
+  urlApi: string = environment.URL_API;
   options = {
     headers: new HttpHeaders({
       'Content-Type': 'application/json'

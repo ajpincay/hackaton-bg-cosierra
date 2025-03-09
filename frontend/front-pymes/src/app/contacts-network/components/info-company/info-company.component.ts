@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { companyRedI } from '../../interfaces/company-red';
+import { companyInfoI } from '../../interfaces/company-red';
 
 @Component({
   selector: 'app-info-company',
@@ -8,5 +8,5 @@ import { companyRedI } from '../../interfaces/company-red';
   styleUrl: './info-company.component.css'
 })
 export class InfoCompanyComponent {
-  @Input() arrayCompanies: companyRedI[] = [];
+  @Input() arrayCompanies: companyInfoI[] = [];
 }
