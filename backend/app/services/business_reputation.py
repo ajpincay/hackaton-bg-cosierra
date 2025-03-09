@@ -23,8 +23,7 @@ class BusinessAnalysisService:
             "legal_compliance_score": value
         }}
         """
-        response_text = generative_model(prompt)
-        print(f"Response from model: {response_text}")
+        response_text = generative_model(prompt, system_instructions=[{"text": "Analyze the business based on the given factors and always return only the provided json schema."}])
         response_json = extract_json(response_text)
         
         return {

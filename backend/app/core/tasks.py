@@ -60,13 +60,7 @@ async def calculate_trust_score(
     Function that calculates a trust_score and assigns a tier.
     """
     base_score = 5
-    print("Calculating trust score for", ruc)
-    print("Persona data:", persona)
-    print("Salario data:", salario_data)
-    print("Supercia data (persona):", supercia_data_persona)
-    print("Auto data:", auto_data)
-    print("Establecimiento data:", establecimiento_data)
-    print("Scoreburo data:", scoreburo_data)
+
 
     metrics = FinancialMetrics.calculate_metrics(
         {
