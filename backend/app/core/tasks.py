@@ -1,8 +1,11 @@
 # app/tasks.py
 import random
 from typing import Tuple
-from app.services.bedrock_integration import bedrock_model_adjustment
-from app.models.pymes import TierEnum
+from app.services.bedrock import bedrock_model_adjustment
+from app.models.pymes import PymeTrust, TierEnum
+from app.core import db
+from app.services.external_data import AsyncExternalDataService
+from app.core.sme_metrics import FinancialMetrics
 
 def determine_tier(score: int) -> TierEnum:
     """
@@ -18,7 +21,7 @@ def determine_tier(score: int) -> TierEnum:
 
 def fetch_and_calculate_category(ruc: str) -> Tuple[int, TierEnum]:
     """
-    Simulate fetching data from external sources and computing a trust score.
+    Fetch data from external sources and computing a trust score.
     Returns a new trust_score (int) and a new tier (TierEnum).
     """
     factors = {
@@ -29,14 +32,10 @@ def fetch_and_calculate_category(ruc: str) -> Tuple[int, TierEnum]:
         "web_seo_metrics": random.uniform(0, 100),
     }
 
-    # Weighted scoring
-    score = (
-        0.40 * factors["financial_health"] +
-        0.25 * factors["business_reputation"] +
-        0.20 * factors["digital_presence"] +
-        0.10 * factors["legal_status"] +
-        0.05 * factors["web_seo_metrics"]
-    )
+    # Obtain the actual trust score from the database
+    pyme = db.query(PymeTrust).filter(PymeTrust.ruc == ruc).first()
+
+    score = pyme.trust_score
 
     # AI-based adjustment
     adjustment = bedrock_model_adjustment(factors)
@@ -46,7 +45,7 @@ def fetch_and_calculate_category(ruc: str) -> Tuple[int, TierEnum]:
 
     return new_trust_score, new_tier
 
-def calculate_trust_score(
+async def calculate_trust_score(
     ruc: str,
     persona: dict,
     salario_data: list,
@@ -56,17 +55,29 @@ def calculate_trust_score(
     scoreburo_data: list
 ) -> Tuple[int, TierEnum]:
     """
-    Mock function that calculates a random trust_score and assigns a tier.
+    Function that calculates a trust_score and assigns a tier.
     """
     base_score = 5
+    print("Calculating trust score for", ruc)
+    print("Persona data:", persona)
+    print("Salario data:", salario_data)
+    print("Supercia data (persona):", supercia_data_persona)
+    print("Auto data:", auto_data)
+    print("Establecimiento data:", establecimiento_data)
+    print("Scoreburo data:", scoreburo_data)
+
+    metrics = FinancialMetrics.calculate_metrics(
+        {
+            "persona": persona,
+            "salario": salario_data,
+            "supercia_persona": supercia_data_persona,
+            "auto": auto_data,
+            "establecimiento": establecimiento_data,
+            "scoreburo": scoreburo_data
+        }
+    )
     
-    # Bonus for various data availability
-    base_score += 10 if persona.get("esCliente") == 1 else 0
-    base_score += 10 if salario_data else 0
-    base_score += 10 if supercia_data_persona else 0
-    base_score += 5 if auto_data else 0
-    base_score += 5 if establecimiento_data else 0
-    base_score += 10 if scoreburo_data else 0
+    base_score += metrics["Confidence Score"]
 
     score = min(base_score, 100)
     tier = determine_tier(score)
