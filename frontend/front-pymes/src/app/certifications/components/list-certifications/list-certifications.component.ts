@@ -12,30 +12,40 @@ export class ListCertificationsComponent {
   //Variables
   arrayCertifications: certificationsI[] = [
     {
-      name: "Certificación Financiera",
-      shortDescription: "Validación de salud financiera",
+      name: "Certificación de Procesos",
+      shortDescription: "Procesos y controles de su empresa",
       progress: 100,
-      largeDescription: "Esta certificación valida la salud financiera de tu empresa basada en estados financieros y flujo de caja.",
+      largeDescription: "Verifica que los procesos empresariales cumplen estándares de calidad y eficiencia",
       details: {
         requirements: "Presentar estados financieros de los últimos dos años, Declaraciones de impuestos al día y Análisis de solvencia y rentabilidad. ",
         benefits: "Acceso a líneas de crédito con mejores tasas, Mayor confianza para proveedores e inversionistas, Posibilidad de participar en licitaciones públicas y privadas, etc"
       }
     },
     {
-      name: "Certificación Operativa",
-      shortDescription: "Validación de procesos operativos",
+      name: "Certificación de idoneidad",
+      shortDescription: "Validación de procesos de idoneidad",
       progress: 35,
-      largeDescription: "React es una librería de JavaScript que permite desarrollar aplicaciones web de una forma más sencilla y rápida.",
+      largeDescription: "Asegura que la empresa cumple requisitos legales y operativos para su actividad.",
       details: {
         requirements: "Presentar estados financieros de los últimos dos años, Declaraciones de impuestos al día y Análisis de solvencia y rentabilidad. ",
         benefits: "Acceso a líneas de crédito con mejores tasas, Mayor confianza para proveedores e inversionistas, Posibilidad de participar en licitaciones públicas y privadas, etc"
       }
     },
     {
-      name: "Certificación Fiscal",
-      shortDescription: "Esta certificación valida el cumplimiento de obligaciones fiscales y transparencia tributaria.",
+      name: "Certificación de tecnología",
+      shortDescription: "Valida el uso de equipo tecnológico de su negocio",
       progress: 0,
-      largeDescription: "Vue es un framework de JavaScript que permite desarrollar aplicaciones web de una forma más sencilla y rápida.",
+      largeDescription: "Valida la seguridad y eficiencia de los sistemas tecnológicos de la empresa",
+      details: {
+        requirements: "Presentar estados financieros de los últimos dos años, Declaraciones de impuestos al día y Análisis de solvencia y rentabilidad. ",
+        benefits: "Acceso a líneas de crédito con mejores tasas, Mayor confianza para proveedores e inversionistas, Posibilidad de participar en licitaciones públicas y privadas, etc"
+      }
+    },
+    {
+      name: "Auditorías",
+      shortDescription: "Comprobación de la transparencia de su empresa",
+      progress: 0,
+      largeDescription: "Evalúan la transparencia financiera, operativa y de gestión de la empresa.",
       details: {
         requirements: "Presentar estados financieros de los últimos dos años, Declaraciones de impuestos al día y Análisis de solvencia y rentabilidad. ",
         benefits: "Acceso a líneas de crédito con mejores tasas, Mayor confianza para proveedores e inversionistas, Posibilidad de participar en licitaciones públicas y privadas, etc"

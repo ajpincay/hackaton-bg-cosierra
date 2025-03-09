@@ -17,9 +17,8 @@ export class DashboardComponent {
 
   constructor(
     private router: Router,
-    private elementRef: ElementRef
+    private elementRef: ElementRef,
   ) { }
-
 
   //Método que redirige al usuario al inicio según el perfil
   goToHome() {
@@ -28,6 +27,7 @@ export class DashboardComponent {
 
   //Método que cierra la sesión del usuario
   signOut() {
+    sessionStorage.clear();
     this.spinnerStatus = true;
     setTimeout(() => {
       this.spinnerStatus = false;
