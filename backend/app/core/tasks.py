@@ -3,9 +3,11 @@ import random
 from typing import Tuple
 from app.services.bedrock import bedrock_model_adjustment
 from app.models.pymes import PymeTrust, TierEnum
-from app.core import db
-from app.services.external_data import AsyncExternalDataService
+from app.core.db import get_db
+from app.services.api_hack_bg import AsyncExternalDataService
 from app.core.sme_metrics import FinancialMetrics
+from fastapi import Depends
+from sqlalchemy.orm import Session
 
 def determine_tier(score: int) -> TierEnum:
     """
@@ -19,7 +21,7 @@ def determine_tier(score: int) -> TierEnum:
         return TierEnum.PLATA
     return TierEnum.NA
 
-def fetch_and_calculate_category(ruc: str) -> Tuple[int, TierEnum]:
+def fetch_and_calculate_category(ruc: str, db: Session = Depends(get_db)) -> Tuple[int, TierEnum]:
     """
     Fetch data from external sources and computing a trust score.
     Returns a new trust_score (int) and a new tier (TierEnum).

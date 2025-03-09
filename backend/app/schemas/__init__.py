@@ -11,6 +11,8 @@ from .pymes import (
     ConfidenceResponse,
     NetworkRecommendation,
     NetworkResponse,
+    PymeView,
+    PeerReviewCreate,
 )
 
 from .external_data import (
@@ -40,4 +42,6 @@ __all__ = [
     "ConfidenceResponse",
     "NetworkRecommendation",
     "NetworkResponse",
+    "PymeView",
+    "PeerReviewCreate",
 ]

@@ -24,6 +24,7 @@ class BusinessAnalysisService:
         }}
         """
         response_text = generative_model(prompt)
+        print(f"Response from model: {response_text}")
         response_json = extract_json(response_text)
         
         return {
