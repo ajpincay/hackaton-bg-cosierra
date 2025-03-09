@@ -112,7 +112,7 @@ resource "aws_internet_gateway" "cosierra-igw" {
   }
 }
 
-resource "aws_route_table" "public" {
+resource "aws_route_table" "eks_public_route_table" {
   vpc_id = aws_vpc.eks-vpc.id
 
   route {
@@ -128,39 +128,15 @@ resource "aws_route_table" "public" {
 }
 
 resource "aws_route_table_association" "public-associantion" {
-  subnet_id      = aws_subnet.eks-subnet-a.id
-  route_table_id = aws_route_table.public.id
+  subnet_id      = aws_subnet.eks-subnet-public.id
+  route_table_id = aws_route_table.eks_public_route_table.id
 }
 
-resource "aws_route_table_association" "private-associantion2" {
-  subnet_id      = aws_subnet.eks-subnet-b.id
-  route_table_id = aws_route_table.public.id
-}
-
-/*
-resource "aws_eip" "nat-eip" {
-  vpc = true
-
-  tags = {
-    Environment = var.env
-    Solution    = var.solutionName
-  }
-}
-
-resource "aws_nat_gateway" "cosierra-nat-gw" {
-  allocation_id = aws_eip.nat-eip.id
-  subnet_id     = aws_subnet.eks-subnet-a.id
-
-  tags = {
-    Environment = var.env
-    Solution    = var.solutionName
-  }
-}*/
-
-resource "aws_subnet" "eks-subnet-a" {
+resource "aws_subnet" "eks-subnet-public" {
   vpc_id            = aws_vpc.eks-vpc.id
   cidr_block        = "10.0.1.0/24"
   availability_zone = "us-west-2a"
+  map_public_ip_on_launch = true
 
   tags = {
     Name        = "cosierra-public"
@@ -169,10 +145,9 @@ resource "aws_subnet" "eks-subnet-a" {
   }
 }
 
-resource "aws_subnet" "eks-subnet-b" {
+resource "aws_subnet" "eks-subnet-private" {
   vpc_id            = aws_vpc.eks-vpc.id
   cidr_block        = "10.0.2.0/24"
-  availability_zone = "us-west-2b"
 
   tags = {
     Name        = "cosierra-private"
@@ -183,11 +158,11 @@ resource "aws_subnet" "eks-subnet-b" {
 
 resource "aws_eks_cluster" "cosierra-eks-cluster" {
   name     = "cosierra-eks-cluster"
-  role_arn = aws_iam_role.lb_controller_role.arn
+  role_arn = aws_iam_role.eks_cluster_role.arn
   vpc_config {
     subnet_ids = [
-      aws_subnet.eks-subnet-a.id,
-      aws_subnet.eks-subnet-b.id
+      aws_subnet.eks-subnet-public.id,
+      aws_subnet.eks-subnet-private.id
     ]
   }
 
@@ -204,6 +179,7 @@ data "aws_eks_cluster" "k8s" {
 data "aws_eks_cluster_auth" "k8s" {
   name = aws_eks_cluster.cosierra-eks-cluster.name
 }
+
 
 resource "aws_iam_policy" "lb_controller_policy" {
   name        = "AWSLoadBalancerControllerIAMPolicy"
@@ -266,8 +242,8 @@ resource "aws_iam_policy" "lb_controller_policy" {
   })
 }
 
-resource "aws_iam_role" "lb_controller_role" {
-  name = "AWSLoadBalancerControllerIAMRole"
+resource "aws_iam_role" "eks_cluster_role" {
+  name = "eks-cluster-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -280,65 +256,9 @@ resource "aws_iam_role" "lb_controller_role" {
   })
 }
 
-resource "aws_iam_role_policy_attachment" "lb_controller_policy_attachment" {
-  policy_arn = aws_iam_policy.lb_controller_policy.arn
-  role       = aws_iam_role.lb_controller_role.name
-}
-
-resource "kubernetes_service_account" "lb-controller-sa" {
-  metadata {
-    name      = "aws-load-balancer-controller"
-    namespace = "kube-system"
-    annotations = {
-      "eks.amazonaws.com/role-arn" = aws_iam_role.lb_controller_role.arn
-    }
-  }
-}
-
-resource "helm_release" "aws-lb-controller" {
-  name       = "aws-load-balancer-controller"
-  repository = "https://aws.github.io/eks-charts"
-  chart      = "aws-load-balancer-controller"
-  namespace  = "kube-system"
-  replace    = true
-
-  set {
-    name  = "clusterName"
-    value = aws_eks_cluster.cosierra-eks-cluster.name
-  }
-
-  set {
-    name  = "serviceAccount.create"
-    value = "false"
-  }
-
-  set {
-    name  = "serviceAccount.name"
-    value = kubernetes_service_account.lb-controller-sa.metadata[0].name
-  }
-
-  depends_on = [kubernetes_service_account.lb-controller-sa]
-}
-
-/*
-resource "aws_iam_role_policy_attachment" "lb_controller_policy_attachment" {
-  policy_arn = aws_iam_policy.lb_controller_policy.arn
-  role       = aws_iam_role.lb_controller_role.name
-}
-
-resource "aws_lb" "cosierra-lb" {
-  name               = "cosierra-lb"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.cosierra-sg.id]
-  subnets            = [aws_subnet.eks-subnet-a.id, aws_subnet.eks-subnet-b.id]
-
-  enable_deletion_protection = false
-
-  tags = {
-    Environment = var.env
-    Solution    = var.solutionName
-  }
+resource "aws_iam_role_policy_attachment" "eks_cluster_policy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy" #aws_iam_policy.lb_controller_policy.arn
+  role       = aws_iam_role.eks_cluster_role.name
 }
 
 resource "aws_security_group" "cosierra-sg" {
@@ -363,60 +283,10 @@ resource "aws_security_group" "cosierra-sg" {
   egress {
     from_port   = 0
     to_port     = 0
-    protocol    = "tcp"
+    protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
-
-resource "aws_lb_listener" "http-listener" {
-  load_balancer_arn = aws_lb.cosierra-lb.arn
-  port              = 80
-  protocol          = "HTTP"
-
-  default_action {
-    type = "forward"
-
-    forward {
-      target_group {
-        arn = aws_lb_target_group.cosierra-tg.arn
-      }
-    }
-  }
-}
-
-resource "aws_lb_listener" "https-listener" {
-  load_balancer_arn = aws_lb.cosierra-lb.arn
-  port              = 443
-  protocol          = "HTTPS"
-
-  ssl_policy = "ELBSecurityPolicy-2025"
-  certificate_arn = "arn:aws:acm:us-west-2:518847936203:certificate/d9670cb6-23d4-46a7-9faf-e3edaf0c7cb1"
-
-  default_action {
-    type = "forward"
-
-    forward {
-      target_group {
-        arn = aws_lb_target_group.cosierra-tg.arn
-      }
-    }
-  }
-}
-
-resource "aws_lb_target_group" "cosierra-tg" {
-  name     = "cosierra-tg"
-  port     = 80
-  protocol = "HTTP"
-  vpc_id   = aws_vpc.eks-vpc.id
-
-  health_check {
-    path                = "/"
-    interval            = "30"
-    timeout             = 5
-    healthy_threshold   = 2
-    unhealthy_threshold = 2
-  }
-}*/
 
 # Resource Group
 resource "aws_resourcegroups_group" "cosierra-prod-rg" {
