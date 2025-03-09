@@ -1,4 +1,4 @@
-name: Push Backend Docker image to AWS ECR Repo
+name: Push Frontend Docker image to AWS ECR Repo
 
 on:
   push:
