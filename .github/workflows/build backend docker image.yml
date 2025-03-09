@@ -40,19 +40,23 @@ jobs:
       id: get-timestamp
       run: echo "::set-output name=timestamp::$(date +'%Y-%m-%d-%H-%M')"
 
+    - name: Get version
+      id: get-version
+      run: ./backend/release.sh
+
     - name: Build and tag the docker 
       id: build-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: ${{ secrets.BACKEND_REPO_NAME }}
-        IMAGE_TAG: ${{ steps.get-commit-hash.outputs.commit-hash }}-${{ steps.get-timestamp.outputs.timestamp }}
-      run: docker build ./backend -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        #IMAGE_TAG: ${{ steps.get-commit-hash.outputs.commit-hash }}-${{ steps.get-timestamp.outputs.timestamp }}
+      run: docker build ./backend -t $ECR_REGISTRY/$ECR_REPOSITORY:$NEW_VERSION
 
     - name: Push image to Amazon ECR
       id: push-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: ${{ secrets.BACKEND_REPO_NAME }}
-        IMAGE_TAG: ${{ steps.get-commit-hash.outputs.commit-hash }}-${{ steps.get-timestamp.outputs.timestamp }}
-      run: docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        #IMAGE_TAG: ${{ steps.get-commit-hash.outputs.commit-hash }}-${{ steps.get-timestamp.outputs.timestamp }}
+      run: docker push $ECR_REGISTRY/$ECR_REPOSITORY:$NEW_VERSION
         
