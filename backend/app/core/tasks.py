@@ -2,7 +2,8 @@
 import random
 from typing import Tuple
 from app.services.bedrock_integration import bedrock_model_adjustment
-from app.models.pymes import TierEnum
+from app.models.pymes import PymeTrust, TierEnum
+from app.core import db
 
 def determine_tier(score: int) -> TierEnum:
     """
@@ -18,7 +19,7 @@ def determine_tier(score: int) -> TierEnum:
 
 def fetch_and_calculate_category(ruc: str) -> Tuple[int, TierEnum]:
     """
-    Simulate fetching data from external sources and computing a trust score.
+    Fetch data from external sources and computing a trust score.
     Returns a new trust_score (int) and a new tier (TierEnum).
     """
     factors = {
@@ -29,14 +30,10 @@ def fetch_and_calculate_category(ruc: str) -> Tuple[int, TierEnum]:
         "web_seo_metrics": random.uniform(0, 100),
     }
 
-    # Weighted scoring
-    score = (
-        0.40 * factors["financial_health"] +
-        0.25 * factors["business_reputation"] +
-        0.20 * factors["digital_presence"] +
-        0.10 * factors["legal_status"] +
-        0.05 * factors["web_seo_metrics"]
-    )
+    # Obtain the actual trust score from the database
+    pyme = db.query(PymeTrust).filter(PymeTrust.ruc == ruc).first()
+
+    score = pyme.trust_score
 
     # AI-based adjustment
     adjustment = bedrock_model_adjustment(factors)
