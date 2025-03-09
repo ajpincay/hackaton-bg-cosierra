@@ -11,8 +11,8 @@ router = APIRouter()
 @router.post("/login", response_model=LoginResponse)
 def login(login_req: LoginRequest, db: Session = Depends(get_db)):
     """
-    Mock login that checks the mock_log_in table for (ruc, password).
-    If valid, returns the matching pymes_trust record + mock token.
+    Mock login that checks 'mock_log_in' for matching credentials
+    and returns the corresponding 'pymes_trust' record with a mock token.
     """
     user_login = db.query(MockLogIn).filter(
         MockLogIn.ruc == login_req.ruc,
@@ -21,17 +21,18 @@ def login(login_req: LoginRequest, db: Session = Depends(get_db)):
     if not user_login:
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    # Retrieve the user's pyme record
-    user_profile = db.query(PymeTrust).filter(PymeTrust.ruc == login_req.ruc).first()
+    user_profile = db.query(PymeTrust).filter(
+        PymeTrust.ruc == login_req.ruc
+    ).first()
     if not user_profile:
-        raise HTTPException(status_code=404, detail="User profile not found")
+        raise HTTPException(status_code=404, detail="User not found in pymes_trust")
 
     return LoginResponse(
         ruc=user_profile.ruc,
         pyme_name=user_profile.pyme_name,
         trust_score=user_profile.trust_score,
         tier=user_profile.tier,
-        token="mock-token"
+        token="mock-token"  # In real scenarios, use JWT or similar
     )
 
 @router.get("/logout")
@@ -49,22 +50,4 @@ def get_current_user():
     """
     return {"message": "Your user info goes here (mocked)."}
 
-@router.get("/profile/{ruc}", response_model=UserProfile)
-def get_profile(ruc: str, db: Session = Depends(get_db)):
-    """
-    Retrieve the user's pymes_trust record.
-    """
-    user_profile = (
-        db.query(PymeTrust)
-        .filter(PymeTrust.ruc == ruc)
-        .first()
-    )
-    if not user_profile:
-        raise HTTPException(status_code=404, detail="User profile not found")
 
-    return UserProfile(
-        ruc=user_profile.ruc,
-        pyme_name=user_profile.pyme_name,
-        trust_score=user_profile.trust_score,
-        tier=user_profile.tier
-    )

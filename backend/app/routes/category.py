@@ -1,47 +1,41 @@
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
+# routes/category.py
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from sqlalchemy.orm import Session
-
 from app.core.db import get_db
-from app.core.tasks import fetch_and_calculate_category
-from app.models import pymes as models_db
+from app.models import PymeTrust
+from app.schemas import UserProfile
+import time
 
 router = APIRouter()
 
 @router.post("/recalculate/{ruc}")
-def recalculate_category(ruc: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+def recalculate_trust_score(ruc: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     """
-    Schedule a background task to recalculate the user's trust_score and tier.
+    Schedules a background task that recalculates trust score & tier for a given PYME.
     """
-    user_profile = (
-        db.query(models_db.PymeTrust)
-        .filter(models_db.PymeTrust.ruc == ruc)
-        .first()
-    )
+    user_profile = db.query(PymeTrust).filter(PymeTrust.ruc == ruc).first()
     if not user_profile:
-        raise HTTPException(status_code=404, detail="User profile not found")
+        raise HTTPException(status_code=404, detail="PYME not found")
 
-    background_tasks.add_task(update_category, ruc)
-    return {"message": "Category recalculation initiated."}
+    background_tasks.add_task(_update_trust_score, ruc)
+    return {"message": "Recalculation initiated"}
 
-def update_category(ruc: str):
+def _update_trust_score(ruc: str):
     """
-    Background task: fetch new trust_score & tier, update the DB.
+    Background logic that fetches external data, calculates new score, updates DB.
     """
-    import time
-    time.sleep(1)  # Simulate a processing delay
+    from app.core.db import SessionLocal
+    from app.models.pymes import PymeTrust
+    from app.core.tasks import fetch_and_calculate_category
 
-    db = get_db().__next__()  # or create a fresh SessionLocal() if you prefer
+    db = SessionLocal()
     try:
-        user_profile = (
-            db.query(models_db.PymeTrust)
-            .filter(models_db.PymeTrust.ruc == ruc)
-            .first()
-        )
-        if user_profile:
+        time.sleep(1)  # simulate processing delay
+        pyme = db.query(PymeTrust).filter(PymeTrust.ruc == ruc).first()
+        if pyme:
             new_score, new_tier = fetch_and_calculate_category(ruc)
-            user_profile.trust_score = new_score
-            user_profile.tier = new_tier
+            pyme.trust_score = new_score
+            pyme.tier = new_tier
             db.commit()
-            print(f"User {ruc} updated to trust_score={new_score}, tier={new_tier}")
     finally:
         db.close()
