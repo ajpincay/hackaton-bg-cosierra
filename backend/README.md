@@ -5,7 +5,7 @@ A Python-based backend ecosystem built using FastAPI. This service is designed f
 ## Features
 
 - **Mock Authentication**  
-  Utilizes a simple UUID-based login to simulate user authentication. In production, this can be replaced or extended to integrate with Banco de Guayaquil’s SSO/OAuth.
+  Utilizes a simple UUID-based login to simulate user authentication. In production, this can be replaced or extended to integrate with Banco de Guayaquil’s SSO/OAuth. 
 
 - **User Profile Management**  
   Create and retrieve user profiles. Each profile can include a company name, opt-in status, categorization tier, and a badge URL.

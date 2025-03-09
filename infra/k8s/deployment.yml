@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-app
+  labels:
+    app: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: 518847936203.dkr.ecr.us-west-2.amazonaws.com/ecr-cosierra-backend:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DATABASE_URL
+              value: "mysql"
+            - name: API_HCK_BG_KEY
+              value: "api-key"
+            - name: AWS_ACCESS_KEY_ID
+              value: "abc"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: "def"
+            - name: AWS_DEFAULT_REGION
+              name: "us-west-2"
+            - name: AWS_SESSION_TOKEN
+              name: "asds"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-app
+  labels:
+    app: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: 518847936203.dkr.ecr.us-west-2.amazonaws.com/ecr-cosierra-frontend:latest
+          ports:
+            - containerPort: 80
