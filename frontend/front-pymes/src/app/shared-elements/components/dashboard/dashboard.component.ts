@@ -1,10 +1,12 @@
 import { Component, ElementRef } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
+import { SpinnerComponent } from '../spinner/spinner.component';
 
 @Component({
   selector: 'app-dashboard',
   imports: [
-    RouterModule
+    RouterModule,
+    SpinnerComponent
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
@@ -26,11 +28,9 @@ export class DashboardComponent {
 
   //Método que cierra la sesión del usuario
   signOut() {
-    this.spinnerStatus = false;
-    sessionStorage.clear();
-    localStorage.clear();
+    this.spinnerStatus = true;
     setTimeout(() => {
-      this.spinnerStatus = true;
+      this.spinnerStatus = false;
       this.router.navigateByUrl('authentication/login');
     }, 1500);
   }
