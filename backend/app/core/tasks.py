@@ -53,7 +53,7 @@ def calculate_trust_score(
     scoreburo_data: list
 ) -> Tuple[int, TierEnum]:
     """
-    Mock function that calculates a random trust_score and assigns a tier.
+    Function that calculates a trust_score and assigns a tier.
     """
     base_score = 5
     
