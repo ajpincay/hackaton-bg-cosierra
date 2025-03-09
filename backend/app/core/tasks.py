@@ -1,10 +1,10 @@
 # app/tasks.py
 import random
 from typing import Tuple
-from app.integrations.bedrock import bedrock_model_adjustment
+from app.services.bedrock import bedrock_model_adjustment
 from app.models.pymes import PymeTrust, TierEnum
 from app.core import db
-from app.integrations.external_data_service import AsyncExternalDataService
+from app.services.external_data import AsyncExternalDataService
 from app.core.sme_metrics import FinancialMetrics
 
 def determine_tier(score: int) -> TierEnum:

@@ -1,8 +1,8 @@
 # app/routes/auth.py
 from app.core.tasks import calculate_trust_score
 from app.models.pymes import TierEnum
-from app.integrations.external_data_service import AsyncExternalDataService
-from app.integrations.bedrock import bedrock_model_adjustment, get_titan_embedding
+from app.services.external_data import AsyncExternalDataService
+from app.services.bedrock import bedrock_model_adjustment, get_titan_embedding
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 import asyncio
