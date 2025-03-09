@@ -69,3 +69,6 @@ class PymeView(BaseModel):
     peer_review: int
     connected: bool
     pending: bool
+
+class PeerReviewCreate(BaseModel):
+    peer_trust_score: int

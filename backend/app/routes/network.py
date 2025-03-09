@@ -1,11 +1,12 @@
 # routes/network.py
+from http.client import HTTPException
 from app.services.external_data import AsyncExternalDataService
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from app.core.db import get_db
 from app.models.pymes import PeerPymesTrustScore, PymeConnection, PymeTrust
-from app.schemas.pymes import NetworkResponse, NetworkRecommendation, PymeView
+from app.schemas.pymes import NetworkResponse, NetworkRecommendation, PymeView, PeerReviewCreate
 
 router = APIRouter()
 
@@ -22,7 +23,6 @@ async def get_all_pymes(ruc: str, db: Session = Depends(get_db)):
 
     sector = salario_data.get('sector', 'Unknown')
 
-    # Same for `establecimiento`
     establecimiento = await AsyncExternalDataService.get_establecimiento(params={"cedula": ruc})
     establecimiento_data = establecimiento[0] if isinstance(establecimiento, list) and establecimiento else {}
 
@@ -91,4 +91,95 @@ def get_recommendations(ruc: str, db: Session = Depends(get_db)):
     return NetworkResponse(recommendations=recommendations)
 
 
-# endpoint to score a pyme, this will update the trust score by 1 - 10 points
+@router.get("/reviews/{ruc}")
+def get_peer_reviews(ruc: str, db: Session = Depends(get_db)):
+    """
+    Retrieve all peer reviews for a given PyME.
+    """
+    reviews = db.query(PeerPymesTrustScore).filter(PeerPymesTrustScore.score_receiver == ruc).all()
+    if not reviews:
+        raise HTTPException(status_code=404, detail="No reviews found for this PyME")
+
+    return {"reviews": reviews}
+
+@router.post("/review/{reviewer_ruc}/{reviewed_ruc}")
+def submit_peer_review(reviewer_ruc: str, reviewed_ruc: str, review: PeerReviewCreate, db: Session = Depends(get_db)):
+    """
+    Allows one PyME to review another PyME, assigning a score (1-10).
+    """
+    if reviewer_ruc == reviewed_ruc:
+        raise HTTPException(status_code=400, detail="Cannot review yourself")
+
+    if not (1 <= review.peer_trust_score <= 10):
+        raise HTTPException(status_code=400, detail="Score must be between 1 and 10")
+
+    new_review = PeerPymesTrustScore(
+        score_issuer=reviewer_ruc,
+        score_receiver=reviewed_ruc,
+        peer_trust_score=review.peer_trust_score
+    )
+    db.add(new_review)
+    db.commit()
+    db.refresh(new_review)
+    return {"message": "Review submitted successfully", "review": new_review}
+
+
+@router.post("/reject/{requester_ruc}/{receiver_ruc}")
+def reject_connection(requester_ruc: str, receiver_ruc: str, db: Session = Depends(get_db)):
+    """
+    Reject a pending connection request.
+    """
+    connection = db.query(PymeConnection).filter(
+        (PymeConnection.requester_ruc == requester_ruc) & (PymeConnection.receiver_ruc == receiver_ruc),
+        PymeConnection.status == "Pending"
+    ).first()
+
+    if not connection:
+        raise HTTPException(status_code=404, detail="Connection request not found")
+
+    connection.status = "Rejected"
+    db.commit()
+    return {"message": "Connection rejected"}
+
+@router.post("/accept/{requester_ruc}/{receiver_ruc}")
+def accept_connection(requester_ruc: str, receiver_ruc: str, db: Session = Depends(get_db)):
+    """
+    Accept a pending connection request.
+    """
+    connection = db.query(PymeConnection).filter(
+        (PymeConnection.requester_ruc == requester_ruc) & (PymeConnection.receiver_ruc == receiver_ruc),
+        PymeConnection.status == "Pending"
+    ).first()
+
+    if not connection:
+        raise HTTPException(status_code=404, detail="Connection request not found")
+
+    connection.status = "Accepted"
+    db.commit()
+    return {"message": "Connection accepted"}
+
+@router.post("/connect/{requester_ruc}/{receiver_ruc}")
+def request_connection(requester_ruc: str, receiver_ruc: str, db: Session = Depends(get_db)):
+    """
+    Request a connection between two PYMEs.
+    """
+    if requester_ruc == receiver_ruc:
+        raise HTTPException(status_code=400, detail="Cannot connect to yourself")
+
+    existing_connection = db.query(PymeConnection).filter(
+        ((PymeConnection.requester_ruc == requester_ruc) & (PymeConnection.receiver_ruc == receiver_ruc)) |
+        ((PymeConnection.requester_ruc == receiver_ruc) & (PymeConnection.receiver_ruc == requester_ruc))
+    ).first()
+
+    if existing_connection:
+        raise HTTPException(status_code=400, detail="Connection already exists")
+
+    new_connection = PymeConnection(
+        requester_ruc=requester_ruc,
+        receiver_ruc=receiver_ruc,
+        status="Pending"
+    )
+    db.add(new_connection)
+    db.commit()
+    db.refresh(new_connection)
+    return {"message": "Connection request sent", "connection": new_connection}
