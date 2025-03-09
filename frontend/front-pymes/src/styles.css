@@ -49,7 +49,6 @@
     border-radius: 10px !important;
     cursor: pointer !important;
     font-size: 13px !important;
-    text-transform: uppercase !important;
     font-weight: bolder !important;
 }
 
@@ -57,6 +56,19 @@
     transform: scale(1.05); 
     transition: transform 0.3s ease-in-out;
 }
+
+
+
+.btn-secondary{
+    padding: 8px 20px !important;
+    border-radius: 10px !important;
+    cursor: pointer !important;
+    font-size: 13px !important;
+    font-weight: bolder !important;
+}
+
+
+
 
 .btn-outline-primary {
     background-color: var(--white-color) !important;
