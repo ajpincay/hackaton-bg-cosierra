@@ -1,14 +1,7 @@
 name: Push Frontend Docker image to AWS ECR Repo
 
 on:
-  push:
-    branches: [ "main" ]
-    paths:
-      - frontend/front-pymes/src/**
-  pull_request:
-    branches: [ "main" ]
-    paths:
-      - frontend/front-pymes/src/**
+  workflow_dispatch:
 
 jobs:
 
